@@ -3000,9 +3000,9 @@ ADMIN.front=()=>adminLoad(async()=>{
     <div class="list">${list.map((b,i)=>`<div class="item">
       <span class="bthumb ${gOf(b)}">${b.image?`<img src="${esc(b.image)}" alt="">`:''}</span>
       <div class="grow"><div class="t">${esc((b.title||'بدون عنوان').replace(/\n/g,' '))} ${b.active===false?'<span class="pill bad">مخفي</span>':''}</div><div class="muted tiny">${esc(actionLabel(b.action))}</div></div>
-      <div class="acts nowrap"><button class="ibs" onclick="App.moveBanner(${i},-1)" ${i?'':'disabled'}>${ic('up',16,2.2)}</button>
-      <button class="ibs" onclick="App.moveBanner(${i},1)" ${i<list.length-1?'':'disabled'}>${ic('down',16,2.2)}</button>
-      <button class="ibs" onclick="App.editBanner('${b.id}')">${ic('edit',16)}</button></div></div>`).join('')||'<div class="empty">ما فيه بانرات. أضف أول بانر.</div>'}</div>`);}
+      <div class="acts nowrap"><button class="ibs" aria-label="تحريك لأعلى" title="تحريك لأعلى" onclick="App.moveBanner(${i},-1)" ${i?'':'disabled'}>${ic('up',16,2.2)}</button>
+      <button class="ibs" aria-label="تحريك لأسفل" title="تحريك لأسفل" onclick="App.moveBanner(${i},1)" ${i<list.length-1?'':'disabled'}>${ic('down',16,2.2)}</button>
+      <button class="ibs" aria-label="تعديل البانر" title="تعديل البانر" onclick="App.editBanner('${b.id}')">${ic('edit',16)}</button></div></div>`).join('')||'<div class="empty">ما فيه بانرات. أضف أول بانر.</div>'}</div>`);}
   else{const pages=S.pub.pages||[];
     body(`${segs}<p class="mut small" style="margin-bottom:12px">صفحات تكتبها بنفسك (مسابقة، شروط عرض، طريقة الشحن...) وتربطها بأي زر أو بانر أو إشعار.</p>
     <div class="toolbar"><button class="btn sm" onclick="App.editPage()">${ic('plus',16,2.4)} صفحة جديدة</button></div>
@@ -3439,9 +3439,9 @@ async function renderGateways(){
       <span class="ico ${g.logo?'logo':'soft'}">${g.logo?`<img src="${esc(g.logo)}" alt="">`:ic('card',18)}</span>
       <div class="grow"><div class="t">${esc(g.name)} ${g.active?'<span class="pill ok">مفعّلة</span>':'<span class="pill">مقفولة</span>'}</div>
       <div class="muted tiny">${s.linked?'<span class="plus">مربوطة تقنيًا ✓</span>':'تحتاج ربط تقني'}${s.keys?.length?` · مفاتيح محفوظة (${s.keys.length})`:''}</div></div>
-      <div class="acts nowrap"><button class="ibs" onclick="App.moveGw(${i},-1)" ${i?'':'disabled'}>${ic('up',16,2.2)}</button>
-      <button class="ibs" onclick="App.moveGw(${i},1)" ${i<list.length-1?'':'disabled'}>${ic('down',16,2.2)}</button>
-      <button class="ibs" onclick="App.editGw('${g.id}')">${ic('edit',16)}</button></div></div>`;}).join('')}</div>
+      <div class="acts nowrap"><button class="ibs" aria-label="تحريك لأعلى" title="تحريك لأعلى" onclick="App.moveGw(${i},-1)" ${i?'':'disabled'}>${ic('up',16,2.2)}</button>
+      <button class="ibs" aria-label="تحريك لأسفل" title="تحريك لأسفل" onclick="App.moveGw(${i},1)" ${i<list.length-1?'':'disabled'}>${ic('down',16,2.2)}</button>
+      <button class="ibs" aria-label="تعديل البوابة" title="تعديل البوابة" onclick="App.editGw('${g.id}')">${ic('edit',16)}</button></div></div>`;}).join('')}</div>
     <button class="btn ghost" style="margin-top:12px" onclick="App.editGw()">${ic('plus',17,2.4)} بوابة جديدة</button>`;
 }
 const saveGwList=async list=>{list.forEach((g,i)=>g.sort=i);await S.api.savePublicSettings({gatewayList:list});await refreshFront();};
