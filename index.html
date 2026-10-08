@@ -2945,7 +2945,7 @@ ADMIN.stock=()=>adminLoad(async()=>{
     <h3 style="margin-bottom:14px">إضافة دفعة أكواد</h3>
     ${prods.length?`
     ${fld('الفئة',`<select name="productId" onchange="S.cache.stockProduct=this.value">${S.brands.map(b=>{const ps=prods.filter(p=>p.brandId===b.id);return ps.length?`<optgroup label="${esc(b.name)}">${ps.map(p=>`<option value="${p.id}" ${p.id===sel_?'selected':''}>${esc(p.name)} (مخزون ${p.stock})</option>`).join('')}</optgroup>`:'';}).join('')}</select>`)}
-    <div class="two">${fld('تكلفة الكرت الواحد (د.ل)',num('unitCost','','required min="0.001" step="0.001"'))}${fld('المورد',inp('supplier',S.cache.lastSupplier||'بلو كارد'))}</div>
+    <div class="two">${fld('تكلفة الكرت الواحد (د.ل)',num('unitCost','','required min="0.001" step="any"'))}${fld('المورد',inp('supplier',S.cache.lastSupplier||'بلو كارد'))}</div>
     ${fld('الأكواد (كل كود في سطر)','<textarea name="codes" required placeholder="XXXX-XXXX-XXXX"></textarea>')}
     <p class="note info small" id="b-sum" style="margin-bottom:14px">الصق الأكواد لحساب التكلفة.</p>
     <button class="btn" type="submit">أضف الأكواد للمخزون</button>`:'<div class="empty">أضف منتج وفئة أولًا من «المنتجات والعروض».</div>'}
