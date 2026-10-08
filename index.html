@@ -2957,7 +2957,7 @@ ADMIN.stock=()=>adminLoad(async()=>{
   </div>`);
   const form=$('#admin-body form');if(form?.productId)App.batchCalc(form);
 });
-const dnum=v=>+String(v||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[,،٫]/g,'.');
+const dnum=v=>+String(v||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\s/g,'').replace(/(\d)[,،](?=\d{3}(?!\d))/g,'$1').replace(/[,،٫]/g,'.');
 App.batchCalc=form=>{
   if(!form?.productId)return;
   const p=S.products.find(x=>x.id===form.productId.value);if(!p)return;
