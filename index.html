@@ -3221,7 +3221,7 @@ App.bulkGift=()=>sheet(`<h3 class="shh">هدية / جوائز مسابقة</h3><
     ${chk('notify',true,'أرسل لهم إشعار')}
     <button class="btn" type="submit">${ic('gift',17)} إرسال الهدية</button></form>`);
 App.doBulk=form=>act(form.querySelector('button[type=submit]'),async()=>{
-  const f=formData(form),amount=r2(f.amount);if(!(amount>0))throw new Error('اكتب المبلغ');if(!f.note.trim())throw new Error('اكتب السبب');
+  const f=formData(form),amount=r2(f.amount);if(!(amount>0))throw new Error('اكتب المبلغ');if(amount<0.5)throw new Error('أقل مبلغ للهدية 0.5 د.ل');if(!f.note.trim())throw new Error('اكتب السبب');
   const phones=(f.phones||'').split(/[\n,،\s]+/).map(normPhone).filter(Boolean);
   const count=f.target==='all'?(S.cache.custs||[]).filter(c=>!c.blocked).length:phones.length;
   if(!count)throw new Error('أضف رقم واحد على الأقل');
@@ -3419,6 +3419,7 @@ App.doGiftOne=form=>act(form.querySelector('button[type=submit]'),async()=>{
   const f=formData(form),ph=normPhone(f.phone),c=(S.cache.custs||[]).find(x=>x.phone===ph),amount=r2(f.amount),note=(f.note||'').trim();
   if(!c)throw new Error('اختر زبون موجود برقم هاتفه');
   if(!(amount>0))throw new Error('اكتب المبلغ');
+  if(amount<0.5)throw new Error('أقل مبلغ للهدية 0.5 د.ل');
   if(!note)throw new Error('اكتب السبب');
   if(!confirm(`نضيف ${fmt(amount)} د.ل لمحفظة ${c.name}؟`))return;
   await S.api.adjustBalance({uid:c.id,amount,type:'gift',note,notify:yes(f.notify)});
