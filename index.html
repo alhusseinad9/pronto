@@ -2945,7 +2945,7 @@ ADMIN.stock=()=>adminLoad(async()=>{
     <h3 style="margin-bottom:14px">إضافة دفعة أكواد</h3>
     ${prods.length?`
     ${fld('الفئة',`<select name="productId" onchange="S.cache.stockProduct=this.value">${S.brands.map(b=>{const ps=prods.filter(p=>p.brandId===b.id);return ps.length?`<optgroup label="${esc(b.name)}">${ps.map(p=>`<option value="${p.id}" ${p.id===sel_?'selected':''}>${esc(p.name)} (مخزون ${p.stock})</option>`).join('')}</optgroup>`:'';}).join('')}</select>`)}
-    <div class="two">${fld('تكلفة الكرت الواحد (د.ل)',num('unitCost','','required min="0.01" step="any"'))}${fld('المورد',inp('supplier',S.cache.lastSupplier||'بلو كارد'))}</div>
+    <div class="two">${fld('تكلفة الكرت الواحد (د.ل)','<input name="unitCost" type="text" inputmode="decimal" dir="ltr" value="">')}${fld('المورد',inp('supplier',S.cache.lastSupplier||'بلو كارد'))}</div>
     ${fld('الأكواد (كل كود في سطر)','<textarea name="codes" required placeholder="XXXX-XXXX-XXXX"></textarea>')}
     <p class="note info small" id="b-sum" style="margin-bottom:14px">الصق الأكواد لحساب التكلفة.</p>
     <button class="btn" type="submit">أضف الأكواد للمخزون</button>`:'<div class="empty">أضف منتج وفئة أولًا من «المنتجات والعروض».</div>'}
@@ -2957,12 +2957,13 @@ ADMIN.stock=()=>adminLoad(async()=>{
   </div>`);
   const form=$('#admin-body form');if(form?.productId)App.batchCalc(form);
 });
+const dnum=v=>+String(v||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[,،٫]/g,'.');
 App.batchCalc=form=>{
   if(!form?.productId)return;
   const p=S.products.find(x=>x.id===form.productId.value);if(!p)return;
   const codes=form.codes.value.split('\n').map(s=>s.trim()).filter(Boolean);
   const dup=codes.length-new Set(codes).size;
-  const unit=+form.unitCost.value||0,price=eff(p);
+  const unit=dnum(form.unitCost.value)||0,price=eff(p);
   const margin=price>0&&unit?Math.round((price-unit)/price*1000)/10:null;
   $('#b-sum').innerHTML=codes.length
     ?`${codes.length} كود · تكلفة الكرت <b class="num">${fmt(unit)}</b> د.ل · الإجمالي <b class="num">${fmt(unit*codes.length)}</b> د.ل${margin!==null?` · الهامش <b class="num ${margin<(S.cache.priv?.marginAlertPct??8)?'minus':''}">${margin}%</b>`:''}${dup?`<br><span class="minus">فيه ${dup} كود مكرر، احذفه قبل الإضافة</span>`:''}`
@@ -2972,7 +2973,7 @@ App.addBatch=form=>act(form.querySelector('button[type=submit]'),async()=>{
   const codes=form.codes.value.split('\n').map(s=>s.trim()).filter(Boolean);
   if(new Set(codes).size!==codes.length)throw new Error('فيه أكواد مكررة داخل الدفعة');
   S.cache.lastSupplier=form.supplier.value.trim();S.cache.stockProduct=form.productId.value;
-  const r=await S.api.addBatch({productId:form.productId.value,codes,unitCost:+form.unitCost.value,supplier:form.supplier.value.trim()});
+  const r=await S.api.addBatch({productId:form.productId.value,codes,unitCost:dnum(form.unitCost.value),supplier:form.supplier.value.trim()});
   toast(`تمت إضافة ${r.added} كود للمخزون`,'ok');await refreshFront();ADMIN.stock();
 });
 
