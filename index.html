@@ -956,7 +956,8 @@ const DEFAULT_GATEWAYS = [
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const r2 = n => Math.round((+n || 0) * 100) / 100;
+const dnum=v=>+String(v||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\s/g,'').replace(/(\d)[,،](?=\d{3}(?!\d))/g,'$1').replace(/[,،٫]/g,'.');
+const r2 = n => Math.round((dnum(n) || 0) * 100) / 100;
 const fmt = n => r2(n).toLocaleString('en-US', {maximumFractionDigits: 2});
 const money = n => `<span class="num">${fmt(n)}</span> د.ل`;
 const L = n => `${fmt(n)} د.ل`;
@@ -2136,7 +2137,7 @@ function scGwPay(){
      ${g.logo?`<img src="${esc(g.logo)}" alt="${esc(tx(g,'name'))}">`:`<b>${esc(tx(g,'name'))}</b>`}</div>
     <form onsubmit="event.preventDefault();App.gwSubmit(this)">
      ${fs.map(fld).join('')}
-     <label class="f gwf"><span>المبلغ</span><span class="amtwrap"><input name="amount" type="number" inputmode="decimal" min="1" dir="ltr" placeholder="0" value="${S.topAmount||''}" oninput="App.gwAmt(this.value)"><i>د.ل</i></span></label>
+     <label class="f gwf"><span>المبلغ</span><span class="amtwrap"><input name="amount" type="text" inputmode="decimal" dir="ltr" placeholder="0" value="${S.topAmount||''}" oninput="App.gwAmt(this.value)"><i>د.ل</i></span></label>
      ${t.min||t.max?`<p class="amthint">${t.min?`الحد الأدنى ${t.min} د.ل`:''}${t.min&&t.max?' · ':''}${t.max?`الحد الأعلى ${t.max} د.ل`:''}</p>`:''}
      ${tx(g,'hint')?`<div class="hintbox">${ic('info',16,2)}<span>${esc(tx(g,'hint'))}</span></div>`:''}
      ${g.mode==='redirect'?`<div class="hintbox ok">${ic('shield',16,2)}<span>ستُحوَّل إلى صفحة الدفع الآمنة لإتمام العملية.</span></div>`:''}
@@ -2201,7 +2202,7 @@ function scBank(){
   let step=S.bankStep||1; if(step>1&&!(S.topAmount>0)){step=S.bankStep=1;}
   if(step===1) return bar('تحويل مصرفي')+bankSteps(1)+
    `<form onsubmit="event.preventDefault();App.bankAmt()">
-     <label class="f gwf"><span>المبلغ</span><span class="amtwrap"><input name="amount" type="number" inputmode="decimal" min="1" dir="ltr" placeholder="0" value="${S.topAmount||''}" oninput="App.gwAmt(this.value)"><i>د.ل</i></span></label>
+     <label class="f gwf"><span>المبلغ</span><span class="amtwrap"><input name="amount" type="text" inputmode="decimal" dir="ltr" placeholder="0" value="${S.topAmount||''}" oninput="App.gwAmt(this.value)"><i>د.ل</i></span></label>
      ${tp.min||tp.max?`<p class="amthint">${tp.min?`الحد الأدنى ${tp.min} د.ل`:''}${tp.min&&tp.max?' · ':''}${tp.max?`الحد الأعلى ${tp.max} د.ل`:''}</p>`:''}
      <div style="height:110px"></div><div class="dock low"><button class="btn" type="submit">التالي</button></div></form>`;
   const steps=bankSteps(step);
@@ -2577,7 +2578,7 @@ const yes=v=>v==='on'||v===true||v==='true';
 /* ---------- عناصر النماذج ---------- */
 const fld=(label,inner,hint='')=>`<div class="field"><label>${label}</label>${inner}${hint?`<p class="hint">${hint}</p>`:''}</div>`;
 const inp=(name,val='',attrs='')=>`<input name="${name}" value="${esc(val??'')}" ${attrs}>`;
-const num=(name,val='',attrs='')=>`<input name="${name}" type="number" inputmode="decimal" step="0.01" dir="ltr" value="${val??''}" ${attrs}>`;
+const num=(name,val='',attrs='')=>`<input name="${name}" type="text" inputmode="decimal" dir="ltr" value="${val??''}" ${attrs}>`;
 const area=(name,val='',attrs='')=>`<textarea name="${name}" class="rtl" ${attrs}>${esc(val??'')}</textarea>`;
 const chk=(name,on,label)=>`<label class="check"><input type="checkbox" name="${name}" ${on?'checked':''}> ${label}</label>`;
 const sel=(name,val,opts,attrs='')=>`<select name="${name}" ${attrs}>${opts.map(([v,l])=>`<option value="${esc(v)}" ${String(v)===String(val??'')?'selected':''}>${esc(l)}</option>`).join('')}</select>`;
@@ -2893,7 +2894,7 @@ App.editProduct=(pid,brandId)=>{
   App.prodPrev($('#layer form'));
 };
 App.prodPrev=form=>{const f=formData(form);const b=S.brands.find(x=>x.id===f.brandId)||{};
-  const p={brandId:f.brandId,brand:b.name,name:f.name||'الفئة',price:+f.price||0,salePrice:+f.salePrice||0,saleEnds:toMs(f.saleEnds),stock:1};
+  const p={brandId:f.brandId,brand:b.name,name:f.name||'الفئة',price:dnum(f.price)||0,salePrice:dnum(f.salePrice)||0,saleEnds:toMs(f.saleEnds),stock:1};
   $('#p-pvw').innerHTML=`${cardArt(p)}<div><b>${esc(b.name||'')}</b><div class="muted tiny">${esc(f.name||'')}</div><div class="prrow">${p.price?priceHtml(p):''}</div></div>`;
   const c=S.cache.editCost,price=eff(p),pr=S.cache.priv||{};
   $('#p-margin').innerHTML=c?`آخر تكلفة <b class="num">${fmt(c)}</b> د.ل · الربح في الكرت <b class="num">${fmt(price-c)}</b> د.ل · الهامش <b class="num ${price&&(price-c)/price*100<(pr.marginAlertPct??8)?'minus':''}">${price?Math.round((price-c)/price*1000)/10:0}%</b>`
@@ -2905,7 +2906,7 @@ App.saveProduct=(form,pid)=>act(form.querySelector('button[type=submit]'),async(
   if(!(price>0))throw new Error('اكتب سعر البيع');
   if(sale&&sale>=price)throw new Error('سعر العرض لازم يكون أقل من سعر البيع');
   if(sale&&ends&&ends<Date.now())throw new Error('تاريخ نهاية العرض فات');
-  const data={en:enOf(f,['name']),brandId:b.id,brand:b.name,name:f.name.trim(),price,salePrice:sale||0,saleEnds:sale?ends:0,lowStock:Math.max(0,+f.lowStock||0),sort:pid?(S.products.find(x=>x.id===pid)?.sort??0):S.products.filter(x=>x.brandId===b.id).length,active:yes(f.active)};
+  const data={en:enOf(f,['name']),brandId:b.id,brand:b.name,name:f.name.trim(),price,salePrice:sale||0,saleEnds:sale?ends:0,lowStock:Math.max(0,dnum(f.lowStock)||0),sort:pid?(S.products.find(x=>x.id===pid)?.sort??0):S.products.filter(x=>x.brandId===b.id).length,active:yes(f.active)};
   await S.api.saveProduct(pid?{id:pid,...data}:data);
   App.close();toast('تم حفظ الفئة','ok');await refreshFront();ADMIN.catalog();
 });
@@ -2922,12 +2923,12 @@ App.bulkSale=()=>{
   App.bulkCount($('#layer form'));
 };
 const bulkScope=scope=>S.products.filter(p=>scope==='all'||(scope.startsWith('c:')&&catOf(brandOf(p))?.id===scope.slice(2))||(scope.startsWith('b:')&&p.brandId===scope.slice(2)));
-App.bulkCount=form=>{const f=formData(form);const n=bulkScope(f.scope).length;const pct=+f.pct||0;
+App.bulkCount=form=>{const f=formData(form);const n=bulkScope(f.scope).length;const pct=dnum(f.pct)||0;
   $('#bs-count').textContent=`${n} فئة${pct?` · مثال: كرت بـ 100 د.ل يصير بـ ${fmt(Math.round(100*(1-pct/100)/(+f.round||1))*(+f.round||1))} د.ل`:''}`;};
 App.applyBulkSale=(form,submitter)=>act(submitter,async()=>{
   const f=formData(form),list=bulkScope(f.scope),clear=submitter?.value==='clear';
   if(!list.length)throw new Error('ما فيه فئات في هذا النطاق');
-  const pct=+f.pct,step=+f.round||1,ends=toMs(f.ends);
+  const pct=dnum(f.pct),step=+f.round||1,ends=toMs(f.ends);
   if(!clear&&!(pct>0&&pct<90))throw new Error('نسبة الخصم غير صحيحة');
   if(!clear&&ends&&ends<Date.now())throw new Error('تاريخ النهاية فات');
   await Promise.all(list.map(p=>S.api.saveProduct(clear?{id:p.id,salePrice:0,saleEnds:0}
@@ -2945,7 +2946,7 @@ ADMIN.stock=()=>adminLoad(async()=>{
     <h3 style="margin-bottom:14px">إضافة دفعة أكواد</h3>
     ${prods.length?`
     ${fld('الفئة',`<select name="productId" onchange="S.cache.stockProduct=this.value">${S.brands.map(b=>{const ps=prods.filter(p=>p.brandId===b.id);return ps.length?`<optgroup label="${esc(b.name)}">${ps.map(p=>`<option value="${p.id}" ${p.id===sel_?'selected':''}>${esc(p.name)} (مخزون ${p.stock})</option>`).join('')}</optgroup>`:'';}).join('')}</select>`)}
-    <div class="two">${fld('تكلفة الكرت الواحد (د.ل)','<input name="unitCost" type="text" inputmode="decimal" dir="ltr" value="">')}${fld('المورد',inp('supplier',S.cache.lastSupplier||'بلو كارد'))}</div>
+    <div class="two">${fld('تكلفة الكرت الواحد (د.ل)','<input name="unitCost" type="text" inputmode="decimal" dir="ltr" value="">')}${fld('المورد',inp('supplier',S.cache.lastSupplier||'','placeholder="اسم المورد"'))}</div>
     ${fld('الأكواد (كل كود في سطر)','<textarea name="codes" required placeholder="XXXX-XXXX-XXXX"></textarea>')}
     <p class="note info small" id="b-sum" style="margin-bottom:14px">الصق الأكواد لحساب التكلفة.</p>
     <button class="btn" type="submit">أضف الأكواد للمخزون</button>`:'<div class="empty">أضف منتج وفئة أولًا من «المنتجات والعروض».</div>'}
@@ -2957,7 +2958,6 @@ ADMIN.stock=()=>adminLoad(async()=>{
   </div>`);
   const form=$('#admin-body form');if(form?.productId)App.batchCalc(form);
 });
-const dnum=v=>+String(v||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\s/g,'').replace(/(\d)[,،](?=\d{3}(?!\d))/g,'$1').replace(/[,،٫]/g,'.');
 App.batchCalc=form=>{
   if(!form?.productId)return;
   const p=S.products.find(x=>x.id===form.productId.value);if(!p)return;
@@ -3310,12 +3310,12 @@ ADMIN.settings=()=>adminLoad(async()=>{
 });
 App.saveSet=(id,form)=>act(form.querySelector('button[type=submit]'),async()=>{
   const f=formData(form);const P=d=>S.api.savePublicSettings(d);
-  if(id==='store')await P({maxQty:Math.max(1,Math.min(20,Math.floor(+f.maxQty)||10)),storeName:f.storeName.trim()||'Pronto',support:{whatsapp:normPhone(f.whatsapp),phone:normPhone(f.phone),hours:f.hours.trim()}});
+  if(id==='store')await P({maxQty:Math.max(1,Math.min(20,Math.floor(dnum(f.maxQty))||10)),storeName:f.storeName.trim()||'Pronto',support:{whatsapp:normPhone(f.whatsapp),phone:normPhone(f.phone),hours:f.hours.trim()}});
   if(id==='bonus'){const amount=r2(f.amount),active=yes(f.active);if(active&&!(amount>0))throw new Error('اكتب مبلغ الهدية');
     await S.api.savePrivateSettings({signupBonus:{active,amount}});await P({signupBonus:active?amount:0});}
-  if(id==='topup'){const amounts=(f.amounts||'').split(/[,،\s]+/).map(Number).filter(x=>x>0).slice(0,6);const min=r2(f.min),max=r2(f.max);
+  if(id==='topup'){const amounts=(f.amounts||'').split(/[,،\s]+/).map(dnum).filter(x=>x>0).slice(0,6);const min=r2(f.min),max=r2(f.max);
     if(min&&max&&min>max)throw new Error('أقل مبلغ أكبر من أكبر مبلغ');await P({topup:{min,max,amounts}});}
-  if(id==='margin')await S.api.savePrivateSettings({marginAlertPct:+f.marginAlertPct||0});
+  if(id==='margin')await S.api.savePrivateSettings({marginAlertPct:dnum(f.marginAlertPct)||0});
   if(id==='maint'){if(yes(f.active)&&!confirm('المتجر حيتقفل على كل الزبائن. متأكد؟'))return;await P({maintenance:{active:yes(f.active),message:f.message.trim(),messageEn:(f.messageEn||'').trim()}});}
   if(id==='bank')await P({bank:{holder:f.holder.trim(),bank:f.bank.trim(),account:f.account.trim(),iban:f.iban.trim(),note:f.note.trim()}});
   if(id==='help')await P({help:f.help.trim(),terms:f.terms.trim(),helpEn:f.helpEn.trim(),termsEn:f.termsEn.trim()});
