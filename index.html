@@ -1102,7 +1102,10 @@ async function createFirebaseApi(cfg) {
   const functions = fn.getFunctions(app, REGION);
   // دوال الدخول تمرّ عبر Cloudflare Worker (بدون Blaze)، والباقي على Cloud Functions
   const WORKER = 'https://pronto-otp.alhussein-ad9.workers.dev';
-  const W_FN = new Set(['checkPhone', 'requestOtp', 'verifyOtp', 'completeSignup', 'resetPassword', 'registerProfile']);
+  const W_FN = new Set(['checkPhone', 'requestOtp', 'verifyOtp', 'completeSignup', 'resetPassword', 'registerProfile',
+    'updateProfile', 'purchase', 'revealCode', 'getOrderLogs', 'submitTopup', 'approveTopup', 'rejectTopup', 'refundOrder',
+    'adjustBalance', 'bulkCredit', 'setBlocked', 'addBatch']);
+
   const call = async (name, data) => {
     if (!W_FN.has(name)) return fn.httpsCallable(functions, name)(data).then(r => r.data);
     const h = {'Content-Type': 'application/json'};
