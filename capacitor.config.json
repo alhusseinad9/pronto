@@ -1,0 +1,12 @@
+{
+  "appId": "ly.pronto.app",
+  "appName": "Pronto",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https",
+    "hostname": "pronto-app.ly"
+  },
+  "android": {
+    "backgroundColor": "#1F5FFF"
+  }
+}
