@@ -2049,6 +2049,7 @@ function scOrder(){
 /* ================== المحفظة والشحن ================== */
 const TOPUP_STATUS={pending:['بانتظار التأكيد','b-warn'],approved:['تمت الإضافة','b-ok'],rejected:['مرفوض','b-err']};
 const LEDGER_ICON={purchase:'bag',topup:'plus',gift:'gift',bonus:'gift',refund:'plus',adjust:'edit'};
+const gwVisible=g=>g.mode!=='lightbox'||!!S.profile?.isAdmin;
 const gwList=()=>(S.pub.gatewayList||DEFAULT_GATEWAYS.map(g=>({...g,active:!!S.pub.gateways?.[g.id]}))).slice().sort((a,b)=>(a.sort??0)-(b.sort??0));
 const methodName=m=>m==='bank'?'تحويل مصرفي':(tx(gwList().find(g=>g.id===m),'name')||m||'');
 /* ================== المحفظة: رصيد + أزرار + متابعة الشحن + عمليات مجمّعة ================== */
@@ -2107,7 +2108,7 @@ function scMyTopups(){
 /* ================== الشحن: المبلغ ثم الطريقة في شاشة وحدة ================== */
 function methods(){
   const b=S.pub.bank||{};
-  return [...gwList().filter(g=>g.active).map(g=>({id:g.id,name:tx(g,'name'),detail:tx(g,'note')||fieldsSummary(g),eta:'فوري',fast:true,icon:'card',logo:g.logo})),
+  return [...gwList().filter(g=>g.active&&gwVisible(g)).map(g=>({id:g.id,name:tx(g,'name'),detail:tx(g,'note')||fieldsSummary(g),eta:'فوري',fast:true,icon:'card',logo:g.logo})),
     ...((b.account||b.iban)?[{id:'bank',name:'تحويل مصرفي',detail:'تحويل ثم رفع الإيصال',eta:'بعد المراجعة',fast:false,icon:'bank'}]:[])];
 }
 function scTopup(){
@@ -2126,7 +2127,7 @@ const fieldsSummary=g=>{const f=gwFields(g);return f.length?f.map(x=>x.label).co
 App.openMethod=id=>{store.set('lastMethod',id);S.payMethod=id;S.gwVals={};S.topAmount=0;
   if(id==='bank'){S.bankStep=1;App.go('bank');return;}App.go('gwpay',id);};
 function scGwPay(){
-  const g=gwList().find(x=>x.id===S.ctx&&x.active);if(!g){S.screen='topup';return scTopup();}
+  const g=gwList().find(x=>x.id===S.ctx&&x.active&&gwVisible(x));if(!g){S.screen='topup';return scTopup();}
   const t=S.pub.topup||{},fs=gwFields(g),v=S.gwVals||{};
   const fld=(f,i)=>{const k=f.key||('f'+i);
     return `<label class="f gwf"><span>${esc(f.label)}${f.required===false?' <i class="opt">(اختياري)</i>':''}</span>
@@ -2169,10 +2170,25 @@ App.payGateway=async(gid,btn,fields)=>{
   const run=async()=>{
   const r=await S.api.startGatewayTopup(gid,S.topAmount,fields);
   S.topAmount=0;
+  if(r.lightbox)return runLightbox(r.lightbox,r.paymentId);
   if(r.url){store.set('payPending',r.paymentId);location.href=r.url;return;}
   if(r.paymentId){waitPayment(r.paymentId,r.message);return;}
   App.close();await refreshProfile();toast('تمت إضافة المبلغ إلى رصيدك','ok');App.go('wallet');};
   return btn?act(btn,run):run();};
+// معاملات Lightbox: السيرفر يحسب SecureHash، والمتصفح فقط يفتح النافذة
+const LB_HOSTS=['tnpg.moamalat.net','npg.moamalat.net'];
+function runLightbox(c,pid){
+  let u;try{u=new URL(c.scriptUrl);}catch(e){}
+  if(!u||u.protocol!=='https:'||!LB_HOSTS.includes(u.hostname))throw new Error('رابط البوابة غير مسموح');
+  const open=()=>{const L=window.Lightbox?.Checkout;if(!L)throw new Error('تعذّر تحميل نافذة الدفع');
+    const done=()=>waitPayment(pid,c.test?'وضع تجريبي: الرصيد لا يُضاف إلا بعد تحقق السيرفر.':'');
+    L.configure={MID:c.MID,TID:c.TID,AmountTrxn:c.AmountTrxn,MerchantReference:c.MerchantReference,TrxDateTime:c.TrxDateTime,SecureHash:c.SecureHash,
+      completeCallback:done,errorCallback:()=>toast('فشلت عملية الدفع','bad'),cancelCallback:()=>toast('تم إلغاء الدفع')};
+    L.showLightbox();};
+  if(window.Lightbox?.Checkout&&S.lbSrc===c.scriptUrl){open();return;}
+  return new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=c.scriptUrl;
+    sc.onload=()=>{S.lbSrc=c.scriptUrl;try{open();ok();}catch(e){no(e);}};sc.onerror=()=>no(new Error('تعذّر تحميل نافذة الدفع'));document.head.appendChild(sc);});
+}
 // بعد الدفع: نستنو تأكيد البوابة (عادة ثواني) ونحدّثوا الرصيد
 function waitPayment(pid,message){
   if(!pid||S.waitingPay===pid)return;S.waitingPay=pid;
@@ -3456,7 +3472,7 @@ App.editGw=gid=>{
       ${fld('المعرّف (بالإنجليزي)',inp('id',g.id,`dir="ltr" ${gid?'disabled':'required'} placeholder="tadawulpay" pattern="[a-z][a-z0-9_-]{1,30}"`),gid?'':'حروف إنجليزية صغيرة وأرقام، وما يتغيّرش بعدين.')}</div>
     ${imgField('logo',g.logo,'شعار البوابة (اختياري)',200,'image/webp')}
     ${fld('وصف قصير تحت الاسم (اختياري)',inp('note',g.note,'maxlength="60" placeholder="يُضاف الرصيد فوراً بعد الدفع"'))}
-    ${fld('بعد التأكيد',sel('mode',g.mode||'inline',[['inline','يتم الدفع داخل التطبيق'],['redirect','تحويل إلى صفحة الدفع']]))}
+    ${fld('بعد التأكيد',sel('mode',g.mode||'inline',[['inline','يتم الدفع داخل التطبيق'],['redirect','تحويل إلى صفحة الدفع'],['lightbox','معاملات Lightbox (تجريبي — للأدمن فقط)']]))}
     ${fld('نص إرشادي للزبون (اختياري)',area('hint',g.hint,'rows="2" placeholder="تحصل على رمز الشراء من تطبيق يسر باي"'))}
     <div class="field"><label>الحقول اللي يعبّيها الزبون</label>
       <p class="hint" style="margin-bottom:8px">المبلغ موجود دائمًا. زيد هنا أي حقل تطلبه البوابة (رقم الهاتف، رمز الشراء، سنة الميلاد…).</p>
@@ -3486,7 +3502,7 @@ App.saveGw=(form,gid)=>act(form.querySelector('button[type=submit]'),async()=>{
   const fields=[];
   Object.keys(f).filter(k=>/^gf_label_/.test(k)).forEach(k=>{const i=k.split('_')[2],lab=(f[k]||'').trim();
     if(lab)fields.push({key:(f['gf_key_'+i]||'').trim()||('f'+i),label:lab,type:f['gf_type_'+i]||'text',len:+f['gf_len_'+i]||0,required:yes(f['gf_req_'+i]),placeholder:(f['gf_ph_'+i]||'').trim()});});
-  const item={id,fields,mode:f.mode==='redirect'?'redirect':'inline',hint:(f.hint||'').trim(),en:enOf(f,['name','note']),name:f.name.trim(),logo:f.logo||'',note:f.note.trim(),min:r2(f.min)||0,max:r2(f.max)||0,active,sort:gid?list.find(g=>g.id===gid).sort:list.length};
+  const item={id,fields,mode:['redirect','lightbox'].includes(f.mode)?f.mode:'inline',hint:(f.hint||'').trim(),en:enOf(f,['name','note']),name:f.name.trim(),logo:f.logo||'',note:f.note.trim(),min:r2(f.min)||0,max:r2(f.max)||0,active,sort:gid?list.find(g=>g.id===gid).sort:list.length};
   const i=list.findIndex(g=>g.id===id);if(i>=0)list[i]=item;else list.push(item);
   const secretFields={merchantId:f.merchantId,apiKey:f.apiKey,secretKey:f.secretKey};
   (f.extra||'').split('\n').forEach(l=>{const k=l.indexOf('=');if(k>0)secretFields[l.slice(0,k).trim()]=l.slice(k+1).trim();});
