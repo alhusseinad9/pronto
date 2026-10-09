@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F2F5FA">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Pronto">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -3711,7 +3712,7 @@ function hideSplash() {
         console.warn('Firebase غير متاح هنا، تشغيل النسخة التجريبية', fe); S.api = createDemoApi(); }
     } else { S.api = createDemoApi(); }
     wrapAudit(S.api);
-    await loadCatalog().catch(e => console.error(e));
+    await loadCatalog().catch(e => { if (e?.code !== 'permission-denied') console.error(e); }); // قبل تسجيل الدخول الكتالوج غير متاح، ويُحمَّل بعده
   } catch (e) {
     console.error(e); hideSplash(); $('#v').innerHTML = `<div class="empty"><b>تعذّر تحميل التطبيق</b><p>تأكد من الاتصال وحاول مرة ثانية.</p><button class="btn sm" onclick="location.reload()">إعادة المحاولة</button></div>`; return;
   }
