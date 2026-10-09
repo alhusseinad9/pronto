@@ -915,20 +915,26 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 .ib,.pc-eye,.clr,.bell,.favbtn{min-width:44px;min-height:44px}
 :focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
-/* ===== هوية v2: لون واحد مميز + أرقام كبيرة + أزرار أنعم ===== */
-:root{--bg:#F4F7FC;--mint:#19C79A;--sh:0 1px 3px rgba(14,37,69,.05),0 6px 18px rgba(14,37,69,.06)}
-.btn{border-radius:999px;height:54px;box-shadow:0 8px 20px rgba(31,95,255,.28);letter-spacing:-.2px}
-.btn.sec{box-shadow:none;border:1.5px solid var(--line)}
-.nav{border-radius:24px 24px 0 0;box-shadow:0 -6px 24px rgba(14,37,69,.07)}
-.nav button[data-on="1"]{border-radius:999px;padding-inline:14px;width:auto;min-width:72px}
-.tab.on{background:var(--blue);color:#fff}
-.pc-bal b{font-size:42px;letter-spacing:-1.8px;font-variant-numeric:tabular-nums}
-.pc-bal small{font-size:12.5px;opacity:.8}
-.bal .num{font-variant-numeric:tabular-nums;font-weight:700}
-.pcard,.row,.list{border-radius:20px}
-.pcard .meta b{font-weight:700}
-.wcardbig{background:linear-gradient(135deg,#1F5FFF,#0E2545)}
-[data-theme="dark"]{--bg:#060B14}
+/* ===== هوية v3: خلفية زرقاء فاتحة + بطاقات بيضاء مدوّرة + مربعات كبيرة ===== */
+:root{--bg:#EEF3FF;--soft:#E3ECFF;--line:#E1E9F8;--sh:0 2px 4px rgba(31,70,160,.04),0 10px 26px rgba(31,70,160,.07)}
+body{font-weight:500}
+.sec h2,.cathead{font-size:20px;font-weight:800;letter-spacing:-.4px}
+.search{height:54px;border-radius:999px;box-shadow:var(--sh)}
+.hero{border-radius:28px}
+.cattiles{gap:12px}
+.cti{width:100%;height:auto;aspect-ratio:1/1;border-radius:26px}
+.ctile{gap:9px}
+.ctile small{font-size:13px;font-weight:800}
+.pcard,.mini,.list,.row,.card{border-radius:26px}
+.pcard .meta b{font-weight:800}
+.btn{border-radius:999px;height:56px;font-weight:800;box-shadow:0 10px 24px rgba(31,95,255,.26)}
+.btn.sec{box-shadow:var(--sh);border:0}
+.nav{border-radius:30px 30px 0 0;box-shadow:0 -8px 30px rgba(31,70,160,.09)}
+.nav button[data-on="1"]{background:var(--soft);border-radius:18px}
+.tab{box-shadow:var(--sh)}.tab.on{background:var(--blue);color:#fff}
+.pc-bal b{font-size:40px;letter-spacing:-1.6px;font-variant-numeric:tabular-nums}
+.wcardbig,.pc{border-radius:28px}
+[data-theme="dark"]{--bg:#060B14;--soft:#18273F;--line:#1D2839}
 </style>
 </head>
 <body>
