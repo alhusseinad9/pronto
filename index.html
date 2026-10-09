@@ -2199,8 +2199,9 @@ function waitPayment(pid,message){
   const tick=async()=>{
     let p=null;try{p=await S.api.paymentStatus(pid);}catch(e){}
     if(p?.status==='paid'){store.set('payPending','');S.waitingPay=null;App.close();await refreshProfile().catch(()=>{});toast(`تم شحن ${fmt(p.amount)} د.ل لمحفظتك`,'ok');App.go('wallet');return;}
-    if(p&&['failed','mismatch','cancelled'].includes(p.status)){store.set('payPending','');S.waitingPay=null;App.close();toast('لم تتم عملية الدفع. إذا خُصم منك مبلغ فتواصل مع الدعم','bad');return;}
-    if(Date.now()-t0>120000){S.waitingPay=null;return;}
+    if(p&&['failed','mismatch','cancelled','expired'].includes(p.status)){store.set('payPending','');S.waitingPay=null;App.close();toast(p.status==='cancelled'?'تم إلغاء عملية الدفع':'لم تتم عملية الدفع. إذا خُصم منك مبلغ فتواصل مع الدعم','bad');return;}
+    if(Date.now()-t0>120000){S.waitingPay=null;App.close();
+      sheet(`<div style="text-align:center"><h3 class="shh" style="justify-content:center">لم يصلنا التأكيد بعد</h3><p class="mut" style="margin-top:8px;line-height:1.8">إذا أتممت الدفع فلا تقلق، سيُضاف الرصيد تلقائياً بمجرد تأكيد البوابة. لا تكرر العملية. يمكنك متابعة حالة الشحن من محفظتك، أو التواصل مع الدعم إن تأخر.</p><button class="btn" style="margin-top:18px" onclick="App.close();App.go('wallet')">فهمت</button></div>`);return;}
     setTimeout(tick,3000);};
   setTimeout(tick,1500);
 }
