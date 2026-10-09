@@ -1939,7 +1939,7 @@ function scBrand(){
    <div class="lbl2">اختر الفئة</div>
    <div class="dtiles">${items.map(x=>{const ok=x.stock>0,sale=onSale(x);return `<button class="dtile ${x.id===S.selP&&ok?'on':''}" ${ok?`onclick="App.pick('${x.id}')"`:'disabled'} aria-pressed="${x.id===S.selP}">
      ${sale&&ok?`<em>-${offPct(x)}%</em>`:''}<span class="dic ${gOf(b)}">${b.image?`<img src="${esc(b.image)}" alt="">`:artIcon(b.icon,18,1.9)}</span>
-     <b>${esc(tx(x,'name'))}</b><small>${ok?`${L(eff(x))}${sale?`<s>${fmt(x.price)}</s>`:''}`:'نفذت'}</small></button>`;}).join('')}</div>
+     <b>${esc(tx(x,'name'))}</b>${ok&&!sale&&String(tx(x,'name')).replace(/\s/g,'')===String(L(eff(x))).replace(/\s/g,'')?'':`<small>${ok?`${L(eff(x))}${sale?`<s>${fmt(x.price)}</s>`:''}`:'نفذت'}</small>`}</button>`;}).join('')}</div>
    <div style="height:150px"></div></div>
    <div class="paybar2" id="paybar">${payBar(p)}</div>`;
 }
