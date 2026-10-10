@@ -974,6 +974,18 @@ body{font-weight:500}
 .cattiles.few .ctile.on{box-shadow:0 0 0 2px var(--blue)}
 .cattiles.few .ctile.on .cti{box-shadow:none;transform:none}
 .am{font-size:16px}
+.pw{text-align:center;padding:4px 4px 6px}
+.pw h3{font-size:19px;font-weight:700;margin:0 0 6px}
+.pw p{font-size:13.5px;line-height:1.8;max-width:300px;margin:0 auto}
+.pwr{position:relative;width:84px;height:84px;margin:8px auto 14px;display:flex;align-items:center;justify-content:center;color:var(--blue)}
+.pwr svg{position:relative}
+.pwring{position:absolute;inset:0;border-radius:50%;border:4px solid var(--soft);border-top-color:var(--blue);animation:sp 1s linear infinite}
+.pwr.ok{background:var(--ok-bg);color:var(--ok);border-radius:50%;animation:pop .35s ease both}
+.pwsteps{display:flex;flex-direction:column;gap:8px;align-items:stretch;margin:18px auto 0;max-width:260px;text-align:start}
+.pwsteps span{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t3);padding:9px 12px;border-radius:12px;background:var(--soft)}
+.pwsteps span.on{color:var(--ok);background:var(--ok-bg);font-weight:600}
+.pwsteps span.cur{color:var(--blue);font-weight:700}
+.pwsteps i{width:12px;height:12px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--blue);animation:sp .8s linear infinite}
 </style>
 </head>
 <body>
@@ -2267,16 +2279,21 @@ function runLightbox(c,pid){
 // بعد الدفع: نستنو تأكيد البوابة (عادة ثواني) ونحدّثوا الرصيد
 function waitPayment(pid,message){
   if(!pid||S.waitingPay===pid)return;S.waitingPay=pid;
-  sheet(`<div style="text-align:center"><div class="loader" style="margin:10px auto 18px"></div><h3 class="shh" style="justify-content:center">جارٍ تأكيد الدفع</h3>
-    <p class="mut" style="margin-top:8px;line-height:1.8">${esc(message||'بمجرد تأكيد البوابة للعملية، يُضاف الرصيد إلى محفظتك تلقائياً.')}</p>
-    <button class="btn sec" style="margin-top:18px" onclick="App.close()">إخفاء · سيُضاف الرصيد تلقائياً</button></div>`);
+  sheet(`<div class="pw" id="pw"><div class="pwr"><span class="pwring"></span>${ic('shield',30,1.8)}</div>
+    <h3 id="pwt">جارٍ تأكيد الدفع</h3>
+    <p class="mut" id="pwm">${esc(message||'بمجرد تأكيد البوابة للعملية، يُضاف الرصيد إلى محفظتك تلقائياً.')}</p>
+    <div class="pwsteps"><span class="on">${ic('check',14,3)} تم الدفع</span><span class="cur"><i></i> التحقق من العملية</span><span>إضافة الرصيد</span></div>
+    <button class="lnk" style="margin-top:14px" onclick="App.close()">إخفاء، سيُضاف الرصيد تلقائياً</button></div>`);
   const t0=Date.now();let n=0;
   const tick=async()=>{
     let p=null;
     // فحص مباشر من السيرفر كل ~6 ثواني (احتياط إذا تأخّر إشعار البوابة)
     if(S.api.verifyPayment&&n++%2===0){try{await S.api.verifyPayment(pid);}catch(e){}}
     try{p=await S.api.paymentStatus(pid);}catch(e){}
-    if(p?.status==='paid'){store.set('payPending','');S.waitingPay=null;App.close();await refreshProfile().catch(()=>{});toast(`تم شحن ${fmt(p.amount)} د.ل لمحفظتك`,'ok');App.go('wallet');return;}
+    if(p?.status==='paid'){store.set('payPending','');S.waitingPay=null;await refreshProfile().catch(()=>{});
+      const pw=$('#pw');
+      if(pw){pw.classList.add('ok');pw.innerHTML=`<div class="pwr ok">${ic('check',38,3)}</div><h3>تم شحن ${fmt(p.amount)} د.ل</h3><p class="mut">أُضيف الرصيد إلى محفظتك.</p>`;await new Promise(r=>setTimeout(r,1300));}
+      App.close();toast(`تم شحن ${fmt(p.amount)} د.ل لمحفظتك`,'ok');App.go('wallet');return;}
     if(p&&['failed','mismatch','cancelled','expired'].includes(p.status)){store.set('payPending','');S.waitingPay=null;App.close();toast(p.status==='cancelled'?'تم إلغاء عملية الدفع':'لم تتم عملية الدفع. إذا خُصم منك مبلغ فتواصل مع الدعم','bad');return;}
     if(Date.now()-t0>180000){S.waitingPay=null;App.close();
       sheet(`<div style="text-align:center"><h3 class="shh" style="justify-content:center">لم يصلنا التأكيد بعد</h3><p class="mut" style="margin-top:8px;line-height:1.8">إذا أتممت الدفع فلا تقلق، سيُضاف الرصيد تلقائياً بمجرد تأكيد البوابة. لا تكرر العملية. يمكنك متابعة حالة الشحن من محفظتك، أو التواصل مع الدعم إن تأخر.</p><button class="btn" style="margin-top:18px" onclick="App.close();App.go('wallet')">فهمت</button></div>`);return;}
