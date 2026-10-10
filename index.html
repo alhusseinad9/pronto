@@ -1009,6 +1009,8 @@ body{font-weight:500}
 .hidecd{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;color:#B7C6DD}
 .hidecd b{font-variant-numeric:tabular-nums;color:#fff}
 .codebox .hidecd{display:flex;justify-content:center}
+.reportbtn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:10px;height:46px;border-radius:999px;background:var(--card);color:var(--err);font-size:13.5px;font-weight:700;box-shadow:var(--sh)}
+.oflag{flex:0 0 auto;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--t3);background:var(--soft)}
 </style>
 </head>
 <body>
@@ -1146,7 +1148,7 @@ bolt:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',gift:'<rect x="3" y="8" width="18"
 music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
 phone:'<rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/>',
 call:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/>',
-chat:'<path d="M21 11.5a8.4 8.4 0 0 1-12.2 7.5L3 21l2-5.6A8.4 8.4 0 1 1 21 11.5z"/>',
+flag:'<path d="M5 21V4m0 0h11l-2 4 2 4H5"/>',chat:'<path d="M21 11.5a8.4 8.4 0 0 1-12.2 7.5L3 21l2-5.6A8.4 8.4 0 1 1 21 11.5z"/>',
 help:'<circle cx="12" cy="12" r="9"/><path d="M9.8 9.3a2.3 2.3 0 0 1 4.4.8c0 1.6-2.2 2.1-2.2 3.4M12 17h.01"/>',
 out:'<path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3"/><path d="M14 16l4-4-4-4M18 12H9"/>',
 img:'<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="m4 18 5-5 4 4 3-2.5 4 3.5"/>',
@@ -2048,14 +2050,12 @@ function scDone(){
    ?`<div class="bigcode"><div class="k">رمز الشحن</div>
       <div class="cv ${x0.code?'':'hid'}" id="cv-${x0.id}" dir="ltr">${x0.code?esc(/^\d{12,}$/.test(x0.code)?x0.code.replace(/(\d{4})(?=\d)/g,'$1 '):x0.code):'••••-••••-••••'}</div>
       ${x0.code
-        ?`<div class="bcbtns"><button class="main" onclick="App.copy('${esc(x0.code)}')">${ic('copy',17,2.2)} نسخ الرمز</button>${shareBtn(x0.code)}</div>
-          <div class="hidecd" id="hidecd">${ic('clock',13,2.2)} يُخفى تلقائيًا بعد <b id="hcn">1:00</b></div>`
+        ?`<div class="bcbtns"><button class="main" onclick="App.copy('${esc(x0.code)}')">${ic('copy',17,2.2)} نسخ الرمز</button>${shareBtn(x0.code)}</div>`
         :`<div class="bcbtns"><button class="main" onclick="App.reveal('${x0.id}',this)">${ic('eye',17,2.2)} إظهار الرمز</button></div>`}</div>`
    :`<div class="codebox" style="text-align:right"><div class="k" style="display:flex;justify-content:space-between;align-items:center">الرموز (${o.qty})
      ${all.length>1?`<button class="cpall" onclick="App.copy('${esc(all.join('\\n'))}')">نسخ الكل</button>`:''}</div>
      <div class="codes">${o.orders.map((x,i)=>`<div class="codeline"><span class="cn">${i+1}</span><span class="cv ${x.code?'':'hid'}" id="cv-${x.id}">${x.code?esc(x.code):'••••-••••-••••'}</span>
-      ${x.code?`<button onclick="App.copy('${esc(x.code)}')">نسخ</button>${shareBtn(x.code)}`:`<button onclick="App.reveal('${x.id}',this)">إظهار</button>`}</div>`).join('')}</div>
-     ${all.length?`<div class="hidecd" id="hidecd">${ic('clock',13,2.2)} تُخفى تلقائيًا بعد <b id="hcn">1:00</b></div>`:''}</div>`;
+      ${x.code?`<button onclick="App.copy('${esc(x.code)}')">نسخ</button>${shareBtn(x.code)}`:`<button onclick="App.reveal('${x.id}',this)">إظهار</button>`}</div>`).join('')}</div></div>`;
   return `<div style="padding-top:22px;text-align:center"><div class="okic sm">${ic('check',28,2.4)}</div>
   <h2 style="margin-top:12px;font-size:23px;font-weight:700">تم الشراء</h2>
   <p class="mut" style="margin-top:4px">${esc(o.productName)}${o.qty>1?` × ${o.qty}`:''}</p>
@@ -2067,9 +2067,15 @@ function scDone(){
   <div class="kv"><span>رصيدك الآن</span><b>${L(S.profile.balance)}</b></div>
   ${ref?`<div class="kv"><span>رقم الطلب</span><b class="num" dir="ltr">#${esc(ref)}</b></div>`:''}</div>
   <button class="btn" style="margin-top:16px" onclick="App.go('orders')">عرض طلباتي</button>
-  <button class="lnk" style="margin-top:14px;display:inline-block" onclick="App.go('home')">العودة للمتجر</button></div>`;
+  ${S.pub.support?.whatsapp?`<button class="reportbtn" onclick="App.report(${JSON.stringify(o.orders.map(x=>x.id)).replace(/"/g,"'")},'${esc(o.productName).replace(/'/g,'')}')">${ic('flag',15,2)} الإبلاغ عن مشكلة في الطلب</button>`:''}
+  <button class="lnk" style="margin-top:12px;display:inline-block" onclick="App.go('home')">العودة للمتجر</button></div>`;
 }
 App.copy=v=>copyText(v);
+// بلاغ على طلب: يفتح واتساب الدعم برسالة جاهزة فيها رقم الطلب (بدون الرمز)
+App.report=(ids,name)=>{const num=S.pub.support?.whatsapp;if(!num){toast('رقم الدعم غير مُعرّف');return;}
+  const list=[].concat(ids);const refs=list.map(i=>'#'+String(i).slice(-6).toUpperCase()).join('، ');
+  const txt=`مرحباً، أبلّغ عن مشكلة في طلبي${name?` (${name})`:''}\nرقم الطلب: ${refs}\nالمعرّف: ${list.join('، ')}`;
+  window.open(waLink(num,txt),'_blank','noopener');};
 App.reveal=(oid,btn)=>act(btn,async()=>{
   btn.textContent='لحظة من فضلك…';
   const code=await S.api.revealCode(oid);
@@ -2104,7 +2110,8 @@ function orderCard(o){
    <div class="orow" role="button" tabindex="0" onclick="App.go('order','${o.id}')">
     <span class="ico ${gOf(b)}">${b.image?`<img src="${esc(b.image)}" alt="">`:artIcon(b.icon||'bag',20,1.8)}</span>
     <div class="grow"><b>${esc(o.productName)}</b><small><span class="ost ${ref?'ref':''}"><i></i>${ref?'مسترجع':'مكتمل'}</span> · ${fdate(o.createdAt)}</small></div>
-    ${ref||code?'':`<button class="oeye" onclick="event.stopPropagation();App.reveal('${o.id}',this)">${ic('eye',15,2)} إظهار الكود</button>`}</div>
+    ${ref||code?'':`<button class="oeye" onclick="event.stopPropagation();App.reveal('${o.id}',this)">${ic('eye',15,2)} إظهار</button>`}
+    ${!ref&&S.pub.support?.whatsapp?`<button class="oflag" onclick="event.stopPropagation();App.report('${o.id}','${esc(o.productName).replace(/'/g,'')}')" aria-label="الإبلاغ عن مشكلة">${ic('flag',16,2)}</button>`:''}</div>
    ${ref?'':`<div class="codeb" id="cb-${o.id}" ${code?'':'hidden'}>${code?`<span class="cv num">${esc(code)}</span><button onclick="App.copy('${esc(code)}')">${ic('copy',15,2)} نسخ</button>${shareBtn(code)}`:''}</div>`}</div>`;
 }
 function scOrders(){
@@ -3748,12 +3755,8 @@ function hideCodeUI(id,noRender){
 }
 function hideAllCodes(){const ids=new Set([...Object.keys(S.cache.codes||{}),...(S.last?.orders||[]).filter(x=>x.code).map(x=>x.id)]);
   ids.forEach(id=>hideCodeUI(id,true));if(ids.size&&S.screen==='done')render();}
-setInterval(()=>{const ids=new Set([...Object.keys(S.cache.codes||{}),...(S.last?.orders||[]).filter(x=>x.code).map(x=>x.id)]);
-  Object.keys(seenAt).forEach(k=>{if(!ids.has(k))delete seenAt[k];});
-  ids.forEach(id=>{if(!seenAt[id])seenAt[id]=Date.now();else if(Date.now()-seenAt[id]>HIDE_MS){delete seenAt[id];hideCodeUI(id);}});},5000);
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')hideAllCodes();});
-setInterval(()=>{const el=$('#hcn');if(!el||S.screen!=='done')return;const id=(S.last?.orders||[]).find(x=>x.code)?.id;if(!id)return;
-  const left=Math.max(0,Math.ceil((HIDE_MS-(Date.now()-(seenAt[id]||Date.now())))/1000));el.textContent=`${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;},1000);
+// الإخفاء التلقائي للرموز مُلغى بطلب الإدارة
+
 // --- أدوار الموظفين (واجهة فقط: الحماية الحقيقية لازم تكون في قواعد Firestore/الدوال) ---
 const ROLES={admin:'مدير',support:'دعم',accountant:'محاسب'};
 const ROLE_TABS={support:['sales','customers'],accountant:['dash','topups','sales']};
