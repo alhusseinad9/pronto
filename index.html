@@ -806,6 +806,7 @@ button.stat{text-align:inherit}
 .gwhead{height:86px;border-radius:20px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:19px;letter-spacing:1px;margin:6px 0 4px;overflow:hidden}
 .gwhead.img{background:var(--card);box-shadow:var(--sh);padding:10px}
 .gwhead img{max-width:100%;max-height:100%;object-fit:contain}
+.paidby{display:flex;align-items:center;justify-content:center;gap:8px;margin:20px 0 0;color:var(--t2);font-size:12.5px;font-weight:600}.paidby img{height:28px;width:auto;background:#fff;border-radius:9px;padding:3px 9px;box-shadow:inset 0 0 0 1px var(--line)}
 .f.gwf{margin-top:14px}
 .amtwrap{display:flex;align-items:center;background:var(--card);border-radius:16px;box-shadow:var(--sh);padding-inline-end:14px}
 .amtwrap:focus-within{box-shadow:0 0 0 2px var(--blue)}
@@ -2183,6 +2184,7 @@ function scGwPay(){
      ${t.min||t.max?`<p class="amthint">${t.min?`الحد الأدنى ${t.min} د.ل`:''}${t.min&&t.max?' · ':''}${t.max?`الحد الأعلى ${t.max} د.ل`:''}</p>`:''}
      ${tx(g,'hint')?`<div class="hintbox">${ic('info',16,2)}<span>${esc(tx(g,'hint'))}</span></div>`:''}
      ${g.mode==='redirect'?`<div class="hintbox ok">${ic('shield',16,2)}<span>ستُحوَّل إلى صفحة الدفع الآمنة لإتمام العملية.</span></div>`:''}
+     ${g.mode==='lightbox'?`<div class="paidby">${ic('shield',14,2)}<span>الدفع الآمن عبر</span><img src="img/moamalat.png" alt="معاملات"></div>`:''}
      <div style="height:110px"></div>
      <div class="dock low"><button class="btn" type="submit">${g.mode==='redirect'?'متابعة إلى صفحة الدفع':'تأكيد الشحن'}${S.topAmount>0?` · ${L(S.topAmount)}`:''}</button></div>
     </form>`;
