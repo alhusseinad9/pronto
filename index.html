@@ -215,6 +215,7 @@ padding:8px 10px;box-shadow:var(--sh)}
 .tot{border-top:1px solid var(--line);margin-top:9px;padding-top:12px;font-size:16px;font-weight:700}
 .dock{position:fixed;bottom:calc(86px + env(safe-area-inset-bottom));left:0;right:0;max-width:430px;margin:0 auto;padding:0 18px;z-index:16}
 .dock.low{bottom:calc(18px + env(safe-area-inset-bottom))}
+.dock.inl{position:static;max-width:none;padding:0;margin-top:22px}
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:56px;border-radius:17px;
 background:var(--blue);color:#fff;font-size:16px;font-weight:700;box-shadow:0 12px 26px rgba(29,99,209,.3);transition:transform .14s}
 .btn:active{transform:scale(.985)}
@@ -765,9 +766,9 @@ button.stat{text-align:inherit}
 .amtline input{flex:1;min-width:0;border:0;background:transparent;font-size:34px;font-weight:800;letter-spacing:-1px;color:var(--t1);outline:none;text-align:left;height:auto;box-shadow:none!important;padding:0}
 .amtline input::-webkit-outer-spin-button,.amtline input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .amtline span{font-size:15px;color:var(--t2);font-weight:700}
-.amtchips{display:flex;gap:7px;margin-top:12px;overflow-x:auto;scrollbar-width:none}
+.amtchips{display:flex;gap:7px;margin-top:12px;scrollbar-width:none}
 .amtchips::-webkit-scrollbar{display:none}
-.amtchips button{background:var(--bg);border-radius:999px;padding:8px 15px;font-size:13.5px;font-weight:800;color:var(--t1);flex:0 0 auto}
+.amtchips button{background:var(--card);box-shadow:var(--sh);border-radius:999px;padding:9px 4px;font-size:14px;font-weight:800;color:var(--t1);flex:1 1 0;text-align:center}
 .amtchips button.on{background:var(--navy);color:#fff}
 .amthint{margin:10px 0 0;font-size:11.5px;color:var(--t3)}
 .mlist{display:flex;flex-direction:column;gap:9px}
@@ -806,6 +807,7 @@ button.stat{text-align:inherit}
 .gwhead{height:86px;border-radius:20px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:19px;letter-spacing:1px;margin:6px 0 4px;overflow:hidden}
 .gwhead.img{background:var(--card);box-shadow:var(--sh);padding:10px}
 .gwhead img{max-width:100%;max-height:100%;object-fit:contain}
+.gwcard{display:flex;align-items:center;gap:14px;background:var(--card);border-radius:20px;box-shadow:var(--sh);padding:14px 16px;margin:6px 0 16px}.gwcard .mic{width:52px;height:52px;border-radius:16px}.gwcard b{display:block;font-size:16px;color:var(--t1)}.gwcard small{display:block;margin-top:3px;color:var(--t2);font-size:12.5px}
 .paidby{display:flex;align-items:center;justify-content:center;gap:8px;margin:20px 0 0;color:var(--t2);font-size:12.5px;font-weight:600}.paidby img{height:28px;width:auto;background:#fff;border-radius:9px;padding:3px 9px;box-shadow:inset 0 0 0 1px var(--line)}
 .f.gwf{margin-top:14px}
 .amtwrap{display:flex;align-items:center;background:var(--card);border-radius:16px;box-shadow:var(--sh);padding-inline-end:14px}
@@ -2176,21 +2178,23 @@ function scGwPay(){
     <input name="${esc(k)}" type="text" ${f.type==='number'?'inputmode="numeric" dir="ltr"':''} ${f.len?`maxlength="${+f.len}"`:''}
      placeholder="${esc(f.placeholder||'')}" value="${esc(v[k]||'')}" oninput="App.gwVal('${esc(k)}',this.value)"></label>`;};
   return bar(tx(g,'name'))+
-   `<div class="gwhead ${g.logo?'img':''}" ${g.logo?'':`style="background:${esc(g.color||'#0B1F4B')}"`}>
-     ${g.logo?`<img src="${esc(g.logo)}" alt="${esc(tx(g,'name'))}">`:`<b>${esc(tx(g,'name'))}</b>`}</div>
+   `<div class="gwcard"><span class="mic ${g.logo?'logo':'g4'}">${g.logo?`<img src="${esc(g.logo)}" alt="">`:ic('card',22,2)}</span>
+     <div><b>${esc(tx(g,'name'))}</b>${tx(g,'note')?`<small>${esc(tx(g,'note'))}</small>`:''}</div></div>
     <form onsubmit="event.preventDefault();App.gwSubmit(this)">
      ${fs.map(fld).join('')}
      <label class="f gwf"><span>المبلغ</span><span class="amtwrap"><input name="amount" type="text" inputmode="decimal" dir="ltr" placeholder="0" value="${S.topAmount||''}" oninput="App.gwAmt(this.value)"><i>د.ل</i></span></label>
+     ${(()=>{const qa=[10,20,50,100,200,500].filter(a=>(!t.min||a>=t.min)&&(!t.max||a<=t.max)).slice(0,5);
+       return qa.length?`<div class="amtchips">${qa.map(a=>`<button type="button" data-a="${a}" class="${S.topAmount===a?'on':''}" onclick="App.gwQuick(${a})">${a}</button>`).join('')}</div>`:'';})()}
      ${t.min||t.max?`<p class="amthint">${t.min?`الحد الأدنى ${t.min} د.ل`:''}${t.min&&t.max?' · ':''}${t.max?`الحد الأعلى ${t.max} د.ل`:''}</p>`:''}
      ${tx(g,'hint')?`<div class="hintbox">${ic('info',16,2)}<span>${esc(tx(g,'hint'))}</span></div>`:''}
      ${g.mode==='redirect'?`<div class="hintbox ok">${ic('shield',16,2)}<span>ستُحوَّل إلى صفحة الدفع الآمنة لإتمام العملية.</span></div>`:''}
      ${g.mode==='lightbox'?`<div class="paidby">${ic('shield',14,2)}<span>الدفع الآمن عبر</span><img src="img/moamalat.png" alt="معاملات"></div>`:''}
-     <div style="height:110px"></div>
-     <div class="dock low"><button class="btn" type="submit">${g.mode==='redirect'?'متابعة إلى صفحة الدفع':'تأكيد الشحن'}${S.topAmount>0?` · ${L(S.topAmount)}`:''}</button></div>
+     <div class="dock inl"><button class="btn" type="submit">${g.mode==='redirect'?'متابعة إلى صفحة الدفع':'تأكيد الشحن'}${S.topAmount>0?` · ${L(S.topAmount)}`:''}</button></div>
     </form>`;
 }
 App.gwVal=(k,v)=>{S.gwVals={...(S.gwVals||{}),[k]:v};};
-App.gwAmt=v=>{S.topAmount=r2(v);const b=$('.dock .btn');if(!b)return;
+App.gwQuick=a=>{const i=$('input[name=amount]');if(i)i.value=a;App.gwAmt(a);};
+App.gwAmt=v=>{S.topAmount=r2(v);document.querySelectorAll('.amtchips button').forEach(x=>x.classList.toggle('on',+x.dataset.a===S.topAmount));const b=$('.dock .btn');if(!b)return;
   const g=gwList().find(x=>x.id===S.ctx);
   b.textContent=`${g?.mode==='redirect'?'متابعة إلى صفحة الدفع':S.screen==='bank'?'التالي':'تأكيد الشحن'}${S.topAmount>0&&S.screen!=='bank'?` · ${L(S.topAmount)}`:''}`;trNode(b.parentElement);};
 App.gwSubmit=form=>act(form.querySelector('button[type=submit]'),async()=>{
