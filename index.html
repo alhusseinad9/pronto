@@ -998,6 +998,17 @@ body{font-weight:500}
 .oeye{display:inline-flex;align-items:center;gap:5px;background:var(--soft);color:var(--blue);border-radius:999px;padding:8px 12px;font-size:12px;font-weight:700;flex:0 0 auto;white-space:nowrap}
 .ocard .codeb{margin-top:10px;flex-wrap:wrap;justify-content:center}.ocard .codeb[hidden],.oeye[hidden]{display:none!important}
 .ocard .codeb .cv{flex:1 1 100%;text-align:center;letter-spacing:1px}
+.okic.sm{width:56px;height:56px}
+.bigcode{background:linear-gradient(120deg,var(--navy),#17325C);border-radius:22px;padding:18px 16px;margin-top:16px;text-align:center}
+.bigcode .k{font-size:12px;color:#9DB2CE}
+.bigcode .cv{font-family:ui-monospace,Menlo,monospace;font-size:27px;font-weight:700;color:#fff;letter-spacing:2px;margin:12px 0 14px;word-break:break-all}
+.bigcode .cv.hid{letter-spacing:4px;opacity:.7;font-size:22px}
+.bcbtns{display:flex;gap:8px;justify-content:center;align-items:center}.bcbtns .shr{height:46px;width:auto;border-radius:14px;background:rgba(255,255,255,.16);color:#fff;padding:0 16px}
+.bcbtns button{height:46px;border-radius:14px;background:rgba(255,255,255,.16);color:#fff;font-size:13.5px;font-weight:700;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.bcbtns button.main{flex:1;background:#fff;color:var(--navy)}
+.hidecd{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;color:#B7C6DD}
+.hidecd b{font-variant-numeric:tabular-nums;color:#fff}
+.codebox .hidecd{display:flex;justify-content:center}
 </style>
 </head>
 <body>
@@ -2019,7 +2030,7 @@ App.buy=btn=>{
     const codes=await Promise.all(ids.map(id=>S.api.revealCode(id).catch(()=>null)));
     await Promise.all([refreshProfile(),loadCatalog()]);
     S.cache.orders=null;S.selP=null;S.qty=1;
-    S.last={productName:name,qty:ids.length,price:r.price??price,total:r.total??price*ids.length,orders:ids.map((id,i)=>({id,code:codes[i]}))};
+    S.last={brandId:p.brandId,productName:name,qty:ids.length,price:r.price??price,total:r.total??price*ids.length,orders:ids.map((id,i)=>({id,code:codes[i]}))};
     App.go('done');
   }).finally(()=>{if(document.contains(btn)){btn.disabled=false;refreshPay();}});
 };
@@ -2030,20 +2041,33 @@ const codeBox=(o,code)=>`<div class="codebox" style="text-align:right"><div clas
 function scDone(){
   const o=S.last;if(!o){S.screen='home';return scHome();}
   const all=o.orders.map(x=>x.code).filter(Boolean);
-  return `<div style="padding-top:50px;text-align:center"><div class="okic">${ic('check',33,2.4)}</div>
-  <h2 style="margin-top:18px;font-size:26px;font-weight:700;letter-spacing:-.9px">تم الشراء</h2>
-  <p class="mut" style="margin-top:6px">${esc(o.productName)}${o.qty>1?` × ${o.qty}`:''}</p>
-  <div class="codebox" style="text-align:right"><div class="k" style="display:flex;justify-content:space-between;align-items:center">${o.qty>1?`الرموز (${o.qty})`:'رمز الشحن'}
-   ${all.length>1?`<button class="cpall" onclick="App.copy('${esc(all.join('\\n'))}')">نسخ الكل</button>`:''}</div>
-  <div class="codes">${o.orders.map((x,i)=>`<div class="codeline">${o.qty>1?`<span class="cn">${i+1}</span>`:''}<span class="cv ${x.code?'':'hid'}" id="cv-${x.id}">${x.code?esc(x.code):'••••-••••-••••'}</span>
-   ${x.code?`<button onclick="App.copy('${esc(x.code)}')">نسخ</button>${shareBtn(x.code)}`:`<button onclick="App.reveal('${x.id}',this)">إظهار</button>`}</div>`).join('')}</div></div>
+  const br=S.brands.find(x=>x.id===o.brandId),howTo=br?tx(br,'howTo'):'';
+  const ref=(o.orders[0]?.id||'').slice(-6).toUpperCase();
+  const one=o.qty===1,x0=o.orders[0];
+  const codeBlock=one
+   ?`<div class="bigcode"><div class="k">رمز الشحن</div>
+      <div class="cv ${x0.code?'':'hid'}" id="cv-${x0.id}" dir="ltr">${x0.code?esc(x0.code):'••••-••••-••••'}</div>
+      ${x0.code
+        ?`<div class="bcbtns"><button class="main" onclick="App.copy('${esc(x0.code)}')">${ic('copy',17,2.2)} نسخ الرمز</button>${shareBtn(x0.code)}</div>
+          <div class="hidecd" id="hidecd">${ic('clock',13,2.2)} يُخفى تلقائيًا بعد <b id="hcn">1:00</b></div>`
+        :`<div class="bcbtns"><button class="main" onclick="App.reveal('${x0.id}',this)">${ic('eye',17,2.2)} إظهار الرمز</button></div>`}</div>`
+   :`<div class="codebox" style="text-align:right"><div class="k" style="display:flex;justify-content:space-between;align-items:center">الرموز (${o.qty})
+     ${all.length>1?`<button class="cpall" onclick="App.copy('${esc(all.join('\\n'))}')">نسخ الكل</button>`:''}</div>
+     <div class="codes">${o.orders.map((x,i)=>`<div class="codeline"><span class="cn">${i+1}</span><span class="cv ${x.code?'':'hid'}" id="cv-${x.id}">${x.code?esc(x.code):'••••-••••-••••'}</span>
+      ${x.code?`<button onclick="App.copy('${esc(x.code)}')">نسخ</button>${shareBtn(x.code)}`:`<button onclick="App.reveal('${x.id}',this)">إظهار</button>`}</div>`).join('')}</div>
+     ${all.length?`<div class="hidecd" id="hidecd">${ic('clock',13,2.2)} تُخفى تلقائيًا بعد <b id="hcn">1:00</b></div>`:''}</div>`;
+  return `<div style="padding-top:22px;text-align:center"><div class="okic sm">${ic('check',28,2.4)}</div>
+  <h2 style="margin-top:12px;font-size:23px;font-weight:700">تم الشراء</h2>
+  <p class="mut" style="margin-top:4px">${esc(o.productName)}${o.qty>1?` × ${o.qty}`:''}</p>
+  ${codeBlock}
+  ${howTo?`<div class="hintbox">${ic('info',16,2)}<span>${esc(howTo)}</span></div>`:''}
   <div class="sum" style="text-align:right">
-  ${o.qty>1?`<div class="kv"><span>السعر للكرت</span><b>${L(o.price)}</b></div>`:''}
+  <div class="kv"><span>${o.qty>1?'السعر للكرت':'الكمية'}</span><b>${o.qty>1?L(o.price):'1'}</b></div>${o.qty>1?`<div class="kv"><span>الكمية</span><b>${o.qty}</b></div>`:''}
   <div class="kv"><span>الإجمالي</span><b>${L(o.total)}</b></div>
-  <div class="kv"><span>رصيدك الآن</span><b>${L(S.profile.balance)}</b></div></div>
-  <p class="mut" style="font-size:12.5px;margin-top:12px">الرموز محفوظة في «الطلبات». ولحمايتك يُخفى الرمز تلقائيًا بعد دقيقة، ويمكنك إظهاره من جديد.</p>
-  <button class="btn sec" style="margin-top:16px" onclick="App.go('orders')">عرض طلباتي</button>
-  <button class="btn sec" style="margin-top:10px" onclick="App.go('home')">العودة للمتجر</button></div>`;
+  <div class="kv"><span>رصيدك الآن</span><b>${L(S.profile.balance)}</b></div>
+  ${ref?`<div class="kv"><span>رقم الطلب</span><b class="num" dir="ltr">#${esc(ref)}</b></div>`:''}</div>
+  <button class="btn" style="margin-top:16px" onclick="App.go('orders')">عرض طلباتي</button>
+  <button class="lnk" style="margin-top:14px;display:inline-block" onclick="App.go('home')">العودة للمتجر</button></div>`;
 }
 App.copy=v=>copyText(v);
 App.reveal=(oid,btn)=>act(btn,async()=>{
@@ -2956,6 +2980,7 @@ App.editBrand=bid=>{
     <div class="two">${fld('التصنيف',sel('categoryId',catOf(b)?.id||(bid?'':catList()[0]?.id||''),[['','بدون تصنيف'],...catList().map(c=>[c.id,c.name]),['__new','+ تصنيف جديد…']],'onchange="App.brandCatNew(this)"'))}
       ${fld('شارة على المنتج (اختياري)',inp('tag',b.tag,'maxlength="16" placeholder="جديد، الأكثر مبيعًا"'))}</div>
     ${fld('وصف يظهر في صفحة المنتج (اختياري)',area('description',b.description,'rows="3" maxlength="400" placeholder="مثلًا: الشحن عن طريق الـID داخل اللعبة"'))}
+    ${fld('طريقة استخدام الرمز (تظهر للزبون بعد الشراء)',area('howTo',b.howTo,'rows="3" maxlength="300" placeholder="مثلًا: ادخل إلى موقع Midasbuy، اختر ببجي، وأدخل الرمز في خانة الاسترداد"'))}
     ${imgField('image',b.image,'شعار المنتج (اختياري)',320,'image/webp','لو ما حطيتش صورة، تظهر الأيقونة واللون.')}
     ${fld('اللون',colorPick('color',gOf(b)))}
     ${fld('الأيقونة (لو ما فيش صورة)',iconPick('icon',b.icon||'card'))}
@@ -2979,7 +3004,7 @@ App.saveBrand=(form,bid)=>act(form.querySelector('button[type=submit]'),async()=
   if(f.categoryId==='__new')throw new Error('اختر التصنيف');
   const cat=catList().find(c=>c.id===f.categoryId);
   if(cat&&!S.pub.categories?.length)await saveCats(catsCopy()); // أول مرة: نثبّتوا قائمة التصنيفات
-  const data={en:enOf(f,['name','description']),name:f.name.trim(),categoryId:cat?.id||'',category:cat?.name||'',tag:f.tag.trim(),description:f.description.trim(),image:f.image||'',color:f.color||'g1',
+  const data={en:enOf(f,['name','description']),name:f.name.trim(),categoryId:cat?.id||'',category:cat?.name||'',tag:f.tag.trim(),description:f.description.trim(),howTo:(f.howTo||'').trim(),image:f.image||'',color:f.color||'g1',
     icon:f.icon||'card',sort:bid?(b0=>b0?.sort??0)(S.brands.find(x=>x.id===bid)):S.brands.length,featured:yes(f.featured),active:yes(f.active)};
   const id=await S.api.saveBrand(bid?{id:bid,...data}:data);
   // اسم المنتج محفوظ في كل فئة عشان الطلبات والتقارير
@@ -3727,6 +3752,8 @@ setInterval(()=>{const ids=new Set([...Object.keys(S.cache.codes||{}),...(S.last
   Object.keys(seenAt).forEach(k=>{if(!ids.has(k))delete seenAt[k];});
   ids.forEach(id=>{if(!seenAt[id])seenAt[id]=Date.now();else if(Date.now()-seenAt[id]>HIDE_MS){delete seenAt[id];hideCodeUI(id);}});},5000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')hideAllCodes();});
+setInterval(()=>{const el=$('#hcn');if(!el||S.screen!=='done')return;const id=(S.last?.orders||[]).find(x=>x.code)?.id;if(!id)return;
+  const left=Math.max(0,Math.ceil((HIDE_MS-(Date.now()-(seenAt[id]||Date.now())))/1000));el.textContent=`${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;},1000);
 // --- أدوار الموظفين (واجهة فقط: الحماية الحقيقية لازم تكون في قواعد Firestore/الدوال) ---
 const ROLES={admin:'مدير',support:'دعم',accountant:'محاسب'};
 const ROLE_TABS={support:['sales','customers'],accountant:['dash','topups','sales']};
