@@ -1014,11 +1014,11 @@ body{font-weight:500}
 .sup{display:flex;flex-direction:column;gap:12px}
 .scard{display:flex;align-items:center;gap:14px;padding:14px;border-radius:22px;background:var(--card);box-shadow:var(--sh);width:100%;text-align:start}
 .scard .sci{width:56px;height:56px;border-radius:18px;display:flex;align-items:center;justify-content:center;color:#fff;flex:0 0 auto;box-shadow:0 8px 18px rgba(14,37,69,.16)}
-.scard.wa .sci{background:linear-gradient(135deg,#3BD983,#10925A)}
+.scard.wa .sci{background:none;box-shadow:none;border-radius:0}.scard.wa .sci img{width:56px;height:56px;display:block}
 .scard.ph .sci{background:linear-gradient(135deg,#4C8DFF,#1D4FB8)}
 .scard .g{flex:1;min-width:0}.scard b{display:block;font-size:15px;font-weight:700}.scard small{display:block;font-size:12px;color:var(--t2);margin-top:3px}
 .scard>svg{color:var(--t3);flex:0 0 auto}
-.ico.wa{background:linear-gradient(135deg,#3BD983,#10925A);color:#fff}
+.ico.wa{background:none;padding:0}.ico.wa img{width:100%;height:100%;display:block}
 .qrow{gap:11px;justify-content:flex-start}.qrow b{flex:1;font-weight:600}
 .qi{width:30px;height:30px;border-radius:10px;background:var(--soft);color:var(--blue);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
 .qrow.open .qi{background:var(--blue);color:#fff}
@@ -2172,7 +2172,7 @@ function scOrder(){
    <div class="kv"><span>رقم الطلب</span><b class="num" style="font-size:12px">${esc(o.id)}</b></div>
    <div class="kv"><span>التاريخ</span><b>${fdate(o.createdAt)}</b></div></div>
    ${sup.whatsapp&&!ref?`<button class="helprow" onclick="window.open('${waLink(sup.whatsapp,`مرحباً، لديّ مشكلة في كود الطلب رقم ${o.id}`)}','_blank')">
-     <span class="ico wa">${ic('talk',22,1.8)}</span><span class="grow"><b>هل هناك مشكلة في الرمز؟</b><small>تواصل معنا عبر واتساب</small></span>${ic('chev',16,2.2)}</button>`:''}`;
+     <span class="ico wa"><img src="img/whatsapp.png" alt=""></span><span class="grow"><b>هل هناك مشكلة في الرمز؟</b><small>تواصل معنا عبر واتساب</small></span>${ic('chev',16,2.2)}</button>`:''}`;
 }
 
 /* ================== المحفظة والشحن ================== */
@@ -2445,7 +2445,7 @@ function scHelp(){
   return bar('المساعدة والدعم')+
    `<p class="mut" style="margin:2px 4px 14px;line-height:1.8">فريق الدعم جاهز لمساعدتك. اختر الطريقة الأنسب لك.</p>
     <div class="sup">
-     ${sp.whatsapp?`<button class="scard wa" onclick="App.run({type:'whatsapp'})"><span class="sci">${ic('talk',28,1.8)}</span>
+     ${sp.whatsapp?`<button class="scard wa" onclick="App.run({type:'whatsapp'})"><span class="sci"><img src="img/whatsapp.png" alt=""></span>
        <span class="g"><b>تواصل عبر واتساب</b><small>${esc(sp.hours||'الرد خلال دقائق')}</small></span>${ic('chev',16,2.2)}</button>`:''}
      ${sp.phone?`<button class="scard ph" onclick="App.run({type:'call'})"><span class="sci">${ic('headset',28,1.8)}</span>
        <span class="g"><b>اتصال هاتفي</b><small class="num" dir="ltr" style="text-align:start">${esc(sp.phone)}</small></span>${ic('chev',16,2.2)}</button>`:''}
