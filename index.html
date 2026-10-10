@@ -1144,7 +1144,7 @@ async function createFirebaseApi(cfg) {
   const WORKER = 'https://pronto-otp.alhussein-ad9.workers.dev';
   const W_FN = new Set(['checkPhone', 'requestOtp', 'verifyOtp', 'completeSignup', 'resetPassword', 'registerProfile',
     'updateProfile', 'purchase', 'revealCode', 'getOrderLogs', 'submitTopup', 'approveTopup', 'rejectTopup', 'refundOrder',
-    'adjustBalance', 'bulkCredit', 'setBlocked', 'addBatch']);
+    'adjustBalance', 'bulkCredit', 'setBlocked', 'addBatch', 'startGatewayTopup', 'checkPayment']);
 
   const call = async (name, data) => {
     if (!W_FN.has(name)) return fn.httpsCallable(functions, name)(data).then(r => r.data);
@@ -1226,6 +1226,7 @@ async function createFirebaseApi(cfg) {
     myLedger: () => list(query(collection(db, 'users', uid(), 'ledger'), orderBy('createdAt', 'desc'), limit(60))),
     myNotifications: () => list(query(collection(db, 'notifications'), where('target', 'in', ['all', uid()]), orderBy('createdAt', 'desc'), limit(40))),
     startGatewayTopup: (gateway, amount, fields) => call('startGatewayTopup', {gateway, amount, fields}),
+    verifyPayment: paymentId => call('checkPayment', {paymentId}),
     // ---- الإدارة ----
     saveBrand: b => save('brands', b),
     deleteBrand: id => deleteDoc(doc(db, 'brands', id)),
@@ -1418,6 +1419,7 @@ function createDemoApi() {
       u.password = password; u.phoneVerified = true; cur = u; signed = true; otpOk = false; setTimeout(() => authCb({uid: u.id}));
     }),
     paymentStatus: pid => wait(D.payments.find(p => p.id === pid) || null),
+    verifyPayment: () => wait(null),
     listPayments: () => wait(D.payments),
     gatewayStatus: () => wait(Object.fromEntries((D.pub.gatewayList || []).map(g => [g.id, {linked: false, keys: Object.keys(D.gwSecrets[g.id] || {})}]))),
     saveGatewaySecrets: (gid, fields) => tryy(() => { D.gwSecrets[gid] = {...(D.gwSecrets[gid] || {}), ...Object.fromEntries(Object.entries(fields).filter(([k, v]) => v && !String(v).startsWith('••••')))}; }),
@@ -2234,12 +2236,15 @@ function waitPayment(pid,message){
   sheet(`<div style="text-align:center"><div class="loader" style="margin:10px auto 18px"></div><h3 class="shh" style="justify-content:center">جارٍ تأكيد الدفع</h3>
     <p class="mut" style="margin-top:8px;line-height:1.8">${esc(message||'بمجرد تأكيد البوابة للعملية، يُضاف الرصيد إلى محفظتك تلقائياً.')}</p>
     <button class="btn sec" style="margin-top:18px" onclick="App.close()">إخفاء · سيُضاف الرصيد تلقائياً</button></div>`);
-  const t0=Date.now();
+  const t0=Date.now();let n=0;
   const tick=async()=>{
-    let p=null;try{p=await S.api.paymentStatus(pid);}catch(e){}
+    let p=null;
+    // فحص مباشر من السيرفر كل ~6 ثواني (احتياط إذا تأخّر إشعار البوابة)
+    if(S.api.verifyPayment&&n++%2===0){try{await S.api.verifyPayment(pid);}catch(e){}}
+    try{p=await S.api.paymentStatus(pid);}catch(e){}
     if(p?.status==='paid'){store.set('payPending','');S.waitingPay=null;App.close();await refreshProfile().catch(()=>{});toast(`تم شحن ${fmt(p.amount)} د.ل لمحفظتك`,'ok');App.go('wallet');return;}
     if(p&&['failed','mismatch','cancelled','expired'].includes(p.status)){store.set('payPending','');S.waitingPay=null;App.close();toast(p.status==='cancelled'?'تم إلغاء عملية الدفع':'لم تتم عملية الدفع. إذا خُصم منك مبلغ فتواصل مع الدعم','bad');return;}
-    if(Date.now()-t0>120000){S.waitingPay=null;App.close();
+    if(Date.now()-t0>180000){S.waitingPay=null;App.close();
       sheet(`<div style="text-align:center"><h3 class="shh" style="justify-content:center">لم يصلنا التأكيد بعد</h3><p class="mut" style="margin-top:8px;line-height:1.8">إذا أتممت الدفع فلا تقلق، سيُضاف الرصيد تلقائياً بمجرد تأكيد البوابة. لا تكرر العملية. يمكنك متابعة حالة الشحن من محفظتك، أو التواصل مع الدعم إن تأخر.</p><button class="btn" style="margin-top:18px" onclick="App.close();App.go('wallet')">فهمت</button></div>`);return;}
     setTimeout(tick,3000);};
   setTimeout(tick,1500);
