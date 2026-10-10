@@ -1010,7 +1010,7 @@ body{font-weight:500}
 .hidecd b{font-variant-numeric:tabular-nums;color:#fff}
 .codebox .hidecd{display:flex;justify-content:center}
 .reportbtn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:10px;height:46px;border-radius:999px;background:var(--card);color:var(--err);font-size:13.5px;font-weight:700;box-shadow:var(--sh)}
-.oflag{flex:0 0 auto;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--t3);background:var(--soft)}
+.oflag{flex:0 0 auto;width:38px;height:38px;border-radius:50%;display:flex;padding:0;background:none}.oflag img{width:100%;height:100%;display:block}
 .sup{display:flex;flex-direction:column;gap:12px}
 .scard{display:flex;align-items:center;gap:14px;padding:14px;border-radius:22px;background:var(--card);box-shadow:var(--sh);width:100%;text-align:start}
 .scard .sci{width:56px;height:56px;border-radius:18px;display:flex;align-items:center;justify-content:center;color:#fff;flex:0 0 auto;box-shadow:0 8px 18px rgba(14,37,69,.16)}
@@ -2123,7 +2123,7 @@ function orderCard(o){
     <span class="ico ${gOf(b)}">${b.image?`<img src="${esc(b.image)}" alt="">`:artIcon(b.icon||'bag',20,1.8)}</span>
     <div class="grow"><b>${esc(o.productName)}</b><small><span class="ost ${ref?'ref':''}"><i></i>${ref?'مسترجع':'مكتمل'}</span> · ${fdate(o.createdAt)}</small></div>
     ${ref||code?'':`<button class="oeye" onclick="event.stopPropagation();App.reveal('${o.id}',this)">${ic('eye',15,2)} إظهار</button>`}
-    ${true?`<button class="oflag" onclick="event.stopPropagation();App.report('${o.id}','${esc(o.productName).replace(/'/g,'')}')" aria-label="الإبلاغ عن مشكلة">${ic('flag',16,2)}</button>`:''}</div>
+    ${true?`<button class="oflag" onclick="event.stopPropagation();App.report('${o.id}','${esc(o.productName).replace(/'/g,'')}')" aria-label="الإبلاغ عن مشكلة عبر واتساب"><img src="img/whatsapp.png" alt=""></button>`:''}</div>
    ${ref?'':`<div class="codeb" id="cb-${o.id}" ${code?'':'hidden'}>${code?`<span class="cv num">${esc(code)}</span><button onclick="App.copy('${esc(code)}')">${ic('copy',15,2)} نسخ</button>${shareBtn(code)}`:''}</div>`}</div>`;
 }
 function scOrders(){
