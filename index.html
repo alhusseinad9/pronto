@@ -2154,7 +2154,7 @@ function scMyTopups(){
 function methods(){
   const b=S.pub.bank||{};
   return [...gwList().filter(g=>g.active&&gwVisible(g)).map(g=>({id:g.id,name:tx(g,'name'),detail:tx(g,'note')||fieldsSummary(g),eta:'فوري',fast:true,icon:'card',logo:g.logo})),
-    ...((b.account||b.iban)?[{id:'bank',name:'تحويل مصرفي',detail:'تحويل ثم رفع الإيصال',eta:'بعد المراجعة',fast:false,icon:'bank'}]:[])];
+    ...((b.account||b.iban)?[{id:'bank',name:'تحويل مصرفي',detail:'تحويل ثم رفع الإيصال',eta:'بعد المراجعة',fast:false,icon:'bank',logo:b.logo||'img/bank.png'}]:[])];
 }
 function scTopup(){
   const ms=methods();
@@ -3382,7 +3382,7 @@ ADMIN.settings=()=>adminLoad(async()=>{
   </div><div class="stack">
   ${card('bank','بيانات التحويل المصرفي',fld('اسم صاحب الحساب',inp('holder',b.holder))+fld('المصرف',inp('bank',b.bank))+
     `<div class="two">${fld('رقم الحساب',inp('account',b.account,'dir="ltr"'))}${fld('IBAN (اختياري)',inp('iban',b.iban,'dir="ltr"'))}</div>`+
-    fld('ملاحظة تظهر للزبون',inp('note',b.note,'placeholder="المراجعة من 9 الصبح لـ 11 الليل"')))}
+    fld('ملاحظة تظهر للزبون',inp('note',b.note,'placeholder="المراجعة من 9 الصبح لـ 11 الليل"'))+imgField('logo',b.logo,'شعار التحويل المصرفي (اختياري)',200,'image/webp','لو تركته فاضي يظهر الشعار الافتراضي.'))}
   <div class="card" id="gwcard"><div class="loader"></div></div>
   ${card('help','المساعدة والشروط',fld('الأسئلة الشائعة',area('help',pub.help,'rows="6"'),'كل سطر: السؤال | الجواب')+fld('الشروط وسياسة الاستخدام',area('terms',pub.terms,'rows="6"'))+`<details class="cfg enbox"><summary>${ic('globe',16)} النسخة الإنجليزية (اختياري)</summary>${fld('FAQ (English)',area('helpEn',pub.helpEn,'rows="5" dir="ltr"'))}${fld('Terms (English)',area('termsEn',pub.termsEn,'rows="5" dir="ltr"'))}</details>`)}
   </div></div>`);
@@ -3397,7 +3397,7 @@ App.saveSet=(id,form)=>act(form.querySelector('button[type=submit]'),async()=>{
     if(min&&max&&min>max)throw new Error('أقل مبلغ أكبر من أكبر مبلغ');await P({topup:{min,max,amounts}});}
   if(id==='margin')await S.api.savePrivateSettings({marginAlertPct:dnum(f.marginAlertPct)||0});
   if(id==='maint'){if(yes(f.active)&&!confirm('المتجر حيتقفل على كل الزبائن. متأكد؟'))return;await P({maintenance:{active:yes(f.active),message:f.message.trim(),messageEn:(f.messageEn||'').trim()}});}
-  if(id==='bank')await P({bank:{holder:f.holder.trim(),bank:f.bank.trim(),account:f.account.trim(),iban:f.iban.trim(),note:f.note.trim()}});
+  if(id==='bank')await P({bank:{holder:f.holder.trim(),bank:f.bank.trim(),account:f.account.trim(),iban:f.iban.trim(),note:f.note.trim(),logo:f.logo||''}});
   if(id==='help')await P({help:f.help.trim(),terms:f.terms.trim(),helpEn:f.helpEn.trim(),termsEn:f.termsEn.trim()});
   await refreshFront();toast('تم الحفظ','ok');
 });
