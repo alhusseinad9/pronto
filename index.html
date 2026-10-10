@@ -2094,7 +2094,7 @@ function scOrder(){
 /* ================== المحفظة والشحن ================== */
 const TOPUP_STATUS={pending:['بانتظار التأكيد','b-warn'],approved:['تمت الإضافة','b-ok'],rejected:['مرفوض','b-err']};
 const LEDGER_ICON={purchase:'bag',topup:'plus',gift:'gift',bonus:'gift',refund:'plus',adjust:'edit'};
-const gwVisible=g=>(g.mode!=='lightbox'&&g.id!=='ezonepay')||!!S.profile?.isAdmin;
+const gwVisible=g=>(g.mode!=='lightbox'&&g.id!=='ezonepay'&&g.id!=='moamalat')||!!S.profile?.isAdmin;
 const gwList=()=>(S.pub.gatewayList||DEFAULT_GATEWAYS.map(g=>({...g,active:!!S.pub.gateways?.[g.id]}))).slice().sort((a,b)=>(a.sort??0)-(b.sort??0));
 const methodName=m=>m==='bank'?'تحويل مصرفي':(tx(gwList().find(g=>g.id===m),'name')||m||'');
 /* ================== المحفظة: رصيد + أزرار + متابعة الشحن + عمليات مجمّعة ================== */
@@ -2187,7 +2187,7 @@ function gwForm(g){
      ${t.min||t.max?`<p class="amthint">${t.min?`الحد الأدنى ${t.min} د.ل`:''}${t.min&&t.max?' · ':''}${t.max?`الحد الأعلى ${t.max} د.ل`:''}</p>`:''}
      ${tx(g,'hint')?`<div class="hintbox">${ic('info',16,2)}<span>${esc(tx(g,'hint'))}</span></div>`:''}
      ${g.mode==='redirect'?`<div class="hintbox ok">${ic('shield',16,2)}<span>ستُحوَّل إلى صفحة الدفع الآمنة لإتمام العملية.</span></div>`:''}
-     ${g.mode==='lightbox'?`<div class="paidby">${ic('shield',14,2)}<span>الدفع الآمن عبر</span><img src="img/moamalat.png" alt="معاملات"></div>`:''}
+     ${(g.mode==='lightbox'||g.id==='moamalat')?`<div class="paidby">${ic('shield',14,2)}<span>الدفع الآمن عبر</span><img src="img/moamalat.png" alt="معاملات"></div>`:''}
      <div class="dock inl"><button class="btn" type="submit">${g.mode==='redirect'?'متابعة إلى صفحة الدفع':'تأكيد الشحن'}${S.topAmount>0?` · ${L(S.topAmount)}`:''}</button></div>
     </form>`;
 }
