@@ -807,6 +807,7 @@ button.stat{text-align:inherit}
 .gwhead{height:86px;border-radius:20px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:19px;letter-spacing:1px;margin:6px 0 4px;overflow:hidden}
 .gwhead.img{background:var(--card);box-shadow:var(--sh);padding:10px}
 .gwhead img{max-width:100%;max-height:100%;object-fit:contain}
+.sheet .amtwrap input{border:0;border-radius:0;background:transparent;height:56px;padding:0 16px}.sheet .gws .f input{height:54px;border:0;border-radius:16px;box-shadow:var(--sh);padding:0 16px;font-size:15px}.sheet .gws .amtwrap input{box-shadow:none}.gws{text-align:center}.gws form{text-align:start}.gwic{width:72px;height:72px;border-radius:24px;margin:2px auto 12px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--card);box-shadow:var(--sh);color:#fff}.gwic.g4{background:linear-gradient(135deg,var(--blue),var(--navy))}.gwic img{width:100%;height:100%;object-fit:contain}.gwn{margin:4px 0 14px;font-size:13px}
 .gwcard{display:flex;align-items:center;gap:14px;background:var(--card);border-radius:20px;box-shadow:var(--sh);padding:14px 16px;margin:6px 0 16px}.gwcard .mic{width:52px;height:52px;border-radius:16px}.gwcard b{display:block;font-size:16px;color:var(--t1)}.gwcard small{display:block;margin-top:3px;color:var(--t2);font-size:12.5px}
 .paidby{display:flex;align-items:center;justify-content:center;gap:8px;margin:20px 0 0;color:var(--t2);font-size:12.5px;font-weight:600}.paidby img{height:28px;width:auto;background:#fff;border-radius:9px;padding:3px 9px;box-shadow:inset 0 0 0 1px var(--line)}
 .f.gwf{margin-top:14px}
@@ -2169,18 +2170,16 @@ function scTopup(){
 const gwFields=g=>(g?.fields||[]).filter(f=>f&&f.label);
 const fieldsSummary=g=>{const f=gwFields(g);return f.length?f.map(x=>x.label).concat('المبلغ').join(' و'):'المبلغ فقط';};
 App.openMethod=id=>{store.set('lastMethod',id);S.payMethod=id;S.gwVals={};S.topAmount=0;
-  if(id==='bank'){S.bankStep=1;App.go('bank');return;}App.go('gwpay',id);};
-function scGwPay(){
-  const g=gwList().find(x=>x.id===S.ctx&&x.active&&gwVisible(x));if(!g){S.screen='topup';return scTopup();}
+  if(id==='bank'){S.bankStep=1;App.go('bank');return;}
+  const g=gwList().find(x=>x.id===id&&x.active&&gwVisible(x));if(!g)return;
+  S.ctx=id;sheet(gwSheet(g));};
+function gwForm(g){
   const t=S.pub.topup||{},fs=gwFields(g),v=S.gwVals||{};
   const fld=(f,i)=>{const k=f.key||('f'+i);
     return `<label class="f gwf"><span>${esc(f.label)}${f.required===false?' <i class="opt">(اختياري)</i>':''}</span>
     <input name="${esc(k)}" type="text" ${f.type==='number'?'inputmode="numeric" dir="ltr"':''} ${f.len?`maxlength="${+f.len}"`:''}
      placeholder="${esc(f.placeholder||'')}" value="${esc(v[k]||'')}" oninput="App.gwVal('${esc(k)}',this.value)"></label>`;};
-  return bar(tx(g,'name'))+
-   `<div class="gwcard"><span class="mic ${g.logo?'logo':'g4'}">${g.logo?`<img src="${esc(g.logo)}" alt="">`:ic('card',22,2)}</span>
-     <div><b>${esc(tx(g,'name'))}</b>${tx(g,'note')?`<small>${esc(tx(g,'note'))}</small>`:''}</div></div>
-    <form onsubmit="event.preventDefault();App.gwSubmit(this)">
+  return `<form onsubmit="event.preventDefault();App.gwSubmit(this)">
      ${fs.map(fld).join('')}
      <label class="f gwf"><span>المبلغ</span><span class="amtwrap"><input name="amount" type="text" inputmode="decimal" dir="ltr" placeholder="0" value="${S.topAmount||''}" oninput="App.gwAmt(this.value)"><i>د.ل</i></span></label>
      ${(()=>{const qa=[10,20,50,100,200,500].filter(a=>(!t.min||a>=t.min)&&(!t.max||a<=t.max)).slice(0,5);
@@ -2191,6 +2190,17 @@ function scGwPay(){
      ${g.mode==='lightbox'?`<div class="paidby">${ic('shield',14,2)}<span>الدفع الآمن عبر</span><img src="img/moamalat.png" alt="معاملات"></div>`:''}
      <div class="dock inl"><button class="btn" type="submit">${g.mode==='redirect'?'متابعة إلى صفحة الدفع':'تأكيد الشحن'}${S.topAmount>0?` · ${L(S.topAmount)}`:''}</button></div>
     </form>`;
+}
+function scGwPay(){
+  const g=gwList().find(x=>x.id===S.ctx&&x.active&&gwVisible(x));if(!g){S.screen='topup';return scTopup();}
+  return bar(tx(g,'name'))+
+   `<div class="gwcard"><span class="mic ${g.logo?'logo':'g4'}">${g.logo?`<img src="${esc(g.logo)}" alt="">`:ic('card',22,2)}</span>
+     <div><b>${esc(tx(g,'name'))}</b>${tx(g,'note')?`<small>${esc(tx(g,'note'))}</small>`:''}</div></div>`+gwForm(g);
+}
+// نافذة سفلية موحّدة لكل البوابات: نفس الشكل والخانات فقط تتغيّر
+function gwSheet(g){
+  return `<div class="gws"><span class="gwic ${g.logo?'':'g4'}">${g.logo?`<img src="${esc(g.logo)}" alt="">`:ic('card',32,1.8)}</span>
+    <h3 class="shh" style="justify-content:center">${esc(tx(g,'name'))}</h3>${tx(g,'note')?`<p class="mut gwn">${esc(tx(g,'note'))}</p>`:''}${gwForm(g)}</div>`;
 }
 App.gwVal=(k,v)=>{S.gwVals={...(S.gwVals||{}),[k]:v};};
 App.gwQuick=a=>{const i=$('input[name=amount]');if(i)i.value=a;App.gwAmt(a);};
