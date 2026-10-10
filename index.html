@@ -2090,7 +2090,7 @@ function scOrder(){
 /* ================== المحفظة والشحن ================== */
 const TOPUP_STATUS={pending:['بانتظار التأكيد','b-warn'],approved:['تمت الإضافة','b-ok'],rejected:['مرفوض','b-err']};
 const LEDGER_ICON={purchase:'bag',topup:'plus',gift:'gift',bonus:'gift',refund:'plus',adjust:'edit'};
-const gwVisible=g=>g.mode!=='lightbox'||!!S.profile?.isAdmin;
+const gwVisible=g=>(g.mode!=='lightbox'&&g.id!=='ezonepay')||!!S.profile?.isAdmin;
 const gwList=()=>(S.pub.gatewayList||DEFAULT_GATEWAYS.map(g=>({...g,active:!!S.pub.gateways?.[g.id]}))).slice().sort((a,b)=>(a.sort??0)-(b.sort??0));
 const methodName=m=>m==='bank'?'تحويل مصرفي':(tx(gwList().find(g=>g.id===m),'name')||m||'');
 /* ================== المحفظة: رصيد + أزرار + متابعة الشحن + عمليات مجمّعة ================== */
