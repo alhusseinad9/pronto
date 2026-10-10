@@ -836,7 +836,7 @@ button.stat{text-align:inherit}
 .tm .dot{width:7px;height:7px;border-radius:50%;background:var(--blue);display:block}
 /* ===== 2) حسابي ===== */
 .prof{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:18px;padding:14px;box-shadow:var(--sh)}
-.av{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--navy));box-shadow:0 6px 16px rgba(31,95,255,.28);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;flex:0 0 auto}
+.av{width:52px;height:52px;border-radius:50%;display:block;overflow:hidden;box-shadow:0 6px 16px rgba(31,95,255,.28);flex:0 0 auto}.av svg{display:block}
 .prof b{font-size:16px;display:block}.prof small{font-size:12px;color:var(--t2);display:flex;gap:6px;align-items:center;margin-top:2px}
 .prof em{font-style:normal;background:var(--ok-bg);color:var(--ok);font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:999px}
 .grp{background:var(--card);border-radius:16px;margin-top:12px;overflow:hidden;box-shadow:var(--sh)}
@@ -2377,7 +2377,7 @@ function scAccount(){
   const grp=(...rows)=>`<div class="grp">${rows.join('')}</div>`;
   const r2row=(icn,t,s,on,val)=>`<button class="arow" onclick="${on}"><span class="ai">${ic(icn,18,2)}</span><div class="g"><b>${esc(t)}</b>${s?`<small>${esc(s)}</small>`:''}</div>${val?`<span class="val">${val}</span>`:''}${ic('chev',16,2.2)}</button>`;
   return bar('حسابي',false)+
-  `<div class="prof"><span class="av">${/^[A-Za-z0-9]/.test((p.name||'').trim())?esc((p.name||'?').trim()[0].toUpperCase()):ic('user',26,1.8)}</span>
+  `<div class="prof"><span class="av"><svg viewBox="0 0 56 56" width="52" height="52" aria-hidden="true"><defs><linearGradient id="avg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4C8DFF"/><stop offset="1" stop-color="#14306B"/></linearGradient><linearGradient id="avp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#C9DAFF"/></linearGradient><clipPath id="avc"><circle cx="28" cy="28" r="28"/></clipPath></defs><circle cx="28" cy="28" r="28" fill="url(#avg)"/><g clip-path="url(#avc)"><circle cx="46" cy="8" r="18" fill="#fff" opacity=".10"/><circle cx="28" cy="22" r="9.5" fill="url(#avp)"/><path d="M8 56c0-11 8.5-18 20-18s20 7 20 18z" fill="url(#avp)"/></g><circle cx="28" cy="28" r="27.2" fill="none" stroke="#fff" stroke-opacity=".28"/></svg></span>
     <div class="g"><b>${esc(p.name||'')}</b><small class="num">${esc(p.phone||'')}${p.phoneVerified?' <em>موثّق</em>':''}</small></div></div>
    ${p.blocked?`<div class="note" style="background:var(--err-bg);color:var(--err);margin-top:12px">حسابك موقوف حالياً، تواصل مع الدعم.</div>`:''}
    ${grp(r2row('user','البيانات الشخصية','الاسم والبريد الإلكتروني',"App.editMe()"),
