@@ -2123,7 +2123,7 @@ const dayLabel=t=>{const d=new Date(ts(t)),n=new Date(),s=new Date(n);s.setHours
   if(ts(t)>=s.getTime()-864e5)return 'أمس';
   return d.toLocaleDateString(isEN()?'en-GB':'ar-LY-u-nu-latn',{day:'numeric',month:'long'});};
 const txRow=l=>`<div class="tx"><span class="ti ${l.amount>0?'pos':''} ${l.pending?'pend':''}">${ic(l.pending?'clock':(LEDGER_ICON[l.type]||'wallet'),17,2)}</span>
-  <div class="grow"><b>${esc(l.note||(l.type==='topup'?'شحن رصيد':l.type))}</b><small>${fdate(l.createdAt)}${l.sub?' · '+esc(l.sub):l.method?' · '+esc(methodName(l.method)):''}</small></div>
+  <div class="grow"><b>${esc(l.note==='شحن إلكتروني'&&l.method?methodName(l.method):(l.note||(l.type==='topup'?'شحن رصيد':l.type)))}</b><small>${fdate(l.createdAt)}${l.sub?' · '+esc(l.sub):l.method&&l.note!=='شحن إلكتروني'?' · '+esc(methodName(l.method)):''}</small></div>
   <b class="am ${l.amount>0?'pos':''}" style="direction:ltr;unicode-bidi:bidi-override">${l.amount>0?'+':'−'}${fmt(Math.abs(l.amount))}</b></div>`;
 function groupTx(list){
   let out='',last='';
@@ -2255,9 +2255,10 @@ function runLightbox(c,pid){
   let u;try{u=new URL(c.scriptUrl);}catch(e){}
   if(!u||u.protocol!=='https:'||!LB_HOSTS.includes(u.hostname))throw new Error('رابط البوابة غير مسموح');
   const open=()=>{const L=window.Lightbox?.Checkout;if(!L)throw new Error('تعذّر تحميل نافذة الدفع');
-    const done=()=>waitPayment(pid,c.test?'وضع تجريبي: الرصيد لا يُضاف إلا بعد تحقق السيرفر.':'');
+    let finished=false;
+    const done=()=>{finished=true;setTimeout(()=>{try{L.closeLightbox();}catch(e){}},1500);waitPayment(pid,c.test?'وضع تجريبي: الرصيد لا يُضاف إلا بعد تحقق السيرفر.':'');};
     L.configure={MID:c.MID,TID:c.TID,AmountTrxn:c.AmountTrxn,MerchantReference:c.MerchantReference,TrxDateTime:c.TrxDateTime,SecureHash:c.SecureHash,
-      completeCallback:done,errorCallback:()=>toast('فشلت عملية الدفع','bad'),cancelCallback:()=>toast('تم إلغاء الدفع')};
+      completeCallback:done,errorCallback:()=>{if(!finished)toast('فشلت عملية الدفع','bad');},cancelCallback:()=>{if(!finished)toast('تم إلغاء الدفع');}};
     L.showLightbox();};
   if(window.Lightbox?.Checkout&&S.lbSrc===c.scriptUrl){open();return;}
   return new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=c.scriptUrl;
