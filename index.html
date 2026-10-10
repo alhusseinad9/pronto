@@ -1755,7 +1755,8 @@ async function pinHash(pin){
   if(crypto?.subtle){const h=await crypto.subtle.digest('SHA-256',buf);return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('');}
   let h=0;for(const c of PIN_KEY()+pin)h=(h*31+c.charCodeAt(0))>>>0;return 'x'+h;
 }
-const hasPin=()=>!!store.get(PIN_KEY());
+// الميزة ملغاة: نمسح أي رمز محفوظ حتى لا يُقفل أحد خارج التطبيق
+const hasPin=()=>{if(store.get(PIN_KEY()))store.set(PIN_KEY(),'');return false;};
 function pinPad(title,sub,mode){
   return `<div class="pinwrap"><div class="pinhead">${brandMark(64)}<h1 class="stitle" style="color:#fff;margin-top:14px">${title}</h1><p class="ssub" style="color:#9FB3D9">${sub}</p></div>
    <div class="pdots" id="pdots">${'<i></i>'.repeat(6)}</div>
@@ -1818,7 +1819,7 @@ async function onSignedIn(){
   // الزبون الراجع: الرمز يقفل التطبيق لما يفتحه. وبعد أول دخول نعرضوا عليه يختار رمز
   if(fromBoot&&hasPin()){S.locked=true;showPin('unlock');return;}
   setTimeout(()=>{if(new URLSearchParams(location.search).get('pay')||store.get('payPending'))checkReturnedPayment();else maybeAnnounce();
-    if(!hasPin()&&!store.get(PIN_KEY()+':skip')&&!S.api.demo)setTimeout(()=>{if(!$('#layer').innerHTML)showPin('set');},900);},350);
+  },350);
 }
 
 /* ================== الرئيسية (مبنية من أقسام تتحكم فيها الإدارة) ================== */
@@ -2375,7 +2376,7 @@ function scAccount(){
     <div class="g"><b>${esc(p.name||'')}</b><small class="num">${esc(p.phone||'')}${p.phoneVerified?' <em>موثّق</em>':''}</small></div></div>
    ${p.blocked?`<div class="note" style="background:var(--err-bg);color:var(--err);margin-top:12px">حسابك موقوف حالياً، تواصل مع الدعم.</div>`:''}
    ${grp(r2row('user','البيانات الشخصية','الاسم والبريد الإلكتروني',"App.editMe()"),
-         r2row('shield','الأمان','كلمة المرور ورمز الدخول السريع',"App.openSecurity()"),
+         r2row('shield','الأمان','تغيير كلمة المرور',"App.openSecurity()"),
          r2row('bell','الإشعارات','',"App.go('notifications')"))}
    ${grp(r2row('help','المساعدة والدعم','',"App.go('help')"),
          r2row('doc','الشروط وسياسة الاستخدام','',"App.go('terms')"),
@@ -2387,8 +2388,7 @@ function scAccount(){
    <p class="ver">${esc(brandName())} · الإصدار 1.0</p>`;
 }
 App.openSecurity=()=>sheet(`<h3 class="shh">الأمان</h3>
-  <button class="arow" onclick="App.close();App.changePw()"><span class="ai">${ic('shield',18,2)}</span><div class="g"><b>تغيير كلمة المرور</b></div>${ic('chev',16,2.2)}</button>
-  <button class="arow" onclick="App.close();App.pinSettings()"><span class="ai">${ic('card',18,2)}</span><div class="g"><b>رمز الدخول السريع</b><small>${hasPin()?'مفعّل':'غير مفعّل'}</small></div>${ic('chev',16,2.2)}</button>`);
+  <button class="arow" onclick="App.close();App.changePw()"><span class="ai">${ic('shield',18,2)}</span><div class="g"><b>تغيير كلمة المرور</b></div>${ic('chev',16,2.2)}</button>`);
 App.langSheet=()=>sheet(`<h3 class="shh">اللغة</h3><div class="seg" style="margin-top:14px"><button data-on="${LANG==='ar'?1:0}" onclick="App.lang('ar');App.close()">عربي</button><button data-on="${LANG==='en'?1:0}" onclick="App.lang('en');App.close()">English</button></div>`);
 App.themeSheet=()=>{const th=[['system','تلقائي'],['light','فاتح'],['dark','ليلي']];
   sheet(`<h3 class="shh">المظهر</h3><div class="seg" style="margin-top:14px">${th.map(t=>`<button data-on="${S.theme===t[0]?1:0}" onclick="App.theme('${t[0]}');App.close()">${t[1]}</button>`).join('')}</div>`);};
