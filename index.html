@@ -968,6 +968,12 @@ body{font-weight:500}
 .nav button[data-on="1"] svg{transform:translateY(-1px) scale(1.08);stroke-width:2}
 .nav button[data-on="1"] svg .f{fill:currentColor;fill-opacity:.22}
 .nav button{gap:4px;font-size:11px}
+.cattiles.few{grid-template-columns:repeat(2,minmax(0,1fr))}
+.cattiles.few .ctile{flex-direction:row;justify-content:flex-start;gap:12px;padding:10px 12px;background:var(--card);border-radius:20px;box-shadow:var(--sh)}
+.cattiles.few .cti{width:46px;height:46px;border-radius:15px;flex:0 0 auto}
+.cattiles.few .ctile.on{box-shadow:0 0 0 2px var(--blue)}
+.cattiles.few .ctile.on .cti{box-shadow:none;transform:none}
+.am{font-size:16px}
 </style>
 </head>
 <body>
@@ -1874,7 +1880,7 @@ function block(b){
     case 'image':if(!b.image)return '';
       return `<div class="sec"><button class="imgblock" ${act2(b.action)?`onclick="${act2(b.action)}"`:'disabled'}><img src="${esc(b.image)}" alt="${esc(tx(b,'title'))}"></button></div>`;
     case 'categories':{const cs=cats().slice(1);if(!cs.length)return '';
-      return `<div class="sec"><div class="cattiles">${cs.map((c,i)=>`<button class="ctile ${S.cat===i+1?'on':''}" onclick="App.catTile(${i+1})">
+      return `<div class="sec"><div class="cattiles${cs.length<=2?' few':''}">${cs.map((c,i)=>`<button class="ctile ${S.cat===i+1?'on':''}" onclick="App.catTile(${i+1})">
         <span class="cti" style="background:${esc(c.color||CAT_COLORS[i%CAT_COLORS.length])}">${c.icon?(isImg(c.icon)?`<img src="${esc(c.icon)}" alt="">`:ic(c.icon,26,1.8)):ic('layout',26,1.8)}</span>
         <small>${esc(tx(c,'name'))}</small></button>`).join('')}</div></div>`;}
     case 'catalog':return `<div class="sec" id="catalog">${catalogHtml(tx(b,'title'))}</div>`;
@@ -1898,9 +1904,9 @@ App.catTile=i=>{S.cat=S.cat===i?0:i;const el=$('#homebody');if(el){el.innerHTML=
   setTimeout(()=>$('#catalog')?.scrollIntoView({behavior:'smooth',block:'start'}),50);};
 function catalogHtml(title){
   const cs=cats();if(S.cat>=cs.length)S.cat=0;
-  const list=visibleBrands().filter(b=>S.cat===0||catOf(b)?.id===cs[S.cat].id);
+  const list=visibleBrands().filter(b=>S.cat===0||catOf(b)?.id===cs[S.cat].id).sort((a,b)=>(brandStock(b)>0)-(brandStock(a)>0));
   const tiles=homeHasTiles(),sel=S.cat?tx(cs[S.cat],'name'):'';
-  if(tiles) return `<div class="h"><h2>${esc(sel||title||'كل المنتجات')}</h2>${S.cat?`<button class="more" onclick="App.catTile(${S.cat})">الكل</button>`:`<span class="more">${list.length}</span>`}</div>${brandGrid(list)}`;
+  if(tiles) return `<div class="h"><h2>${esc(sel||title||'كل المنتجات')}</h2>${S.cat?`<button class="more" onclick="App.catTile(${S.cat})">الكل</button>`:`<span class="more">${list.length} منتج</span>`}</div>${brandGrid(list)}`;
   return `${cs.length>2?`<div class="chips">${cs.map((c,i)=>`<button class="chip" data-on="${S.cat===i?1:0}" onclick="App.setCat(${i})">${c.icon?`<span class="chi">${isImg(c.icon)?`<img src="${esc(c.icon)}" alt="">`:ic(c.icon,15,2)}</span>`:''}${esc(tx(c,'name'))}</button>`).join('')}</div>`:''}
   <div class="h" style="margin-top:18px"><h2>${esc(title||'المنتجات')}</h2><span class="more">${list.length} منتج</span></div>
   ${brandGrid(list)}`;
@@ -2117,7 +2123,7 @@ const dayLabel=t=>{const d=new Date(ts(t)),n=new Date(),s=new Date(n);s.setHours
   if(ts(t)>=s.getTime()-864e5)return 'أمس';
   return d.toLocaleDateString(isEN()?'en-GB':'ar-LY-u-nu-latn',{day:'numeric',month:'long'});};
 const txRow=l=>`<div class="tx"><span class="ti ${l.amount>0?'pos':''} ${l.pending?'pend':''}">${ic(l.pending?'clock':(LEDGER_ICON[l.type]||'wallet'),17,2)}</span>
-  <div class="grow"><b>${esc(l.note||(l.type==='topup'?'شحن رصيد':l.type))}</b><small>${fdate(l.createdAt)}${l.sub?' · '+esc(l.sub):''}</small></div>
+  <div class="grow"><b>${esc(l.note||(l.type==='topup'?'شحن رصيد':l.type))}</b><small>${fdate(l.createdAt)}${l.sub?' · '+esc(l.sub):l.method?' · '+esc(methodName(l.method)):''}</small></div>
   <b class="am ${l.amount>0?'pos':''}" style="direction:ltr;unicode-bidi:bidi-override">${l.amount>0?'+':'−'}${fmt(Math.abs(l.amount))}</b></div>`;
 function groupTx(list){
   let out='',last='';
@@ -2390,7 +2396,7 @@ function scAccount(){
    ${grp(r2row('help','المساعدة والدعم','',"App.go('help')"),
          r2row('doc','الشروط وسياسة الاستخدام','',"App.go('terms')"),
          ...(S.pub.pages||[]).filter(x=>x.showInAccount).map(x=>r2row(x.icon||'doc',esc(tx(x,'title')),'',`App.go('page','${x.id}')`)))}
-   ${grp(r2row('globe','اللغة',LANG==='ar'?'العربية':'English',"App.langSheet()",LANG==='ar'?'العربية ›':'English ›'),
+   ${grp(r2row('globe','اللغة','',"App.langSheet()",LANG==='ar'?'العربية ›':'English ›'),
          r2row(dark?'moon':'sun','المظهر',th.find(t=>t[0]===S.theme)?.[1]||'تلقائي',"App.themeSheet()",''))}
    ${p.isAdmin?grp(r2row('shield','لوحة الإدارة','الكروت والواجهة والزبائن والإشعارات',"App.go('admin')")):''}
    ${grp(`<button class="arow" style="color:var(--err)" onclick="App.logout(this)"><span class="ai" style="background:var(--err-bg);color:var(--err)">${ic('out',18,2)}</span><div class="g"><b style="color:var(--err)">تسجيل الخروج</b></div></button>`)}
