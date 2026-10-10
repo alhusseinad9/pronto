@@ -2280,25 +2280,28 @@ function scBank(){
   if(step===1) return bar('تحويل مصرفي')+bankSteps(1)+
    `<form onsubmit="event.preventDefault();App.bankAmt()">
      <label class="f gwf"><span>المبلغ</span><span class="amtwrap"><input name="amount" type="text" inputmode="decimal" dir="ltr" placeholder="0" value="${S.topAmount||''}" oninput="App.gwAmt(this.value)"><i>د.ل</i></span></label>
+     ${(()=>{const qa=[10,20,50,100,200,500].filter(a=>(!tp.min||a>=tp.min)&&(!tp.max||a<=tp.max)).slice(0,5);
+       return qa.length?`<div class="amtchips">${qa.map(a=>`<button type="button" data-a="${a}" class="${S.topAmount===a?'on':''}" onclick="App.gwQuick(${a})">${a}</button>`).join('')}</div>`:'';})()}
      ${tp.min||tp.max?`<p class="amthint">${tp.min?`الحد الأدنى ${tp.min} د.ل`:''}${tp.min&&tp.max?' · ':''}${tp.max?`الحد الأعلى ${tp.max} د.ل`:''}</p>`:''}
-     <div style="height:110px"></div><div class="dock low"><button class="btn" type="submit">التالي</button></div></form>`;
+     <div class="dock inl"><button class="btn" type="submit">التالي</button></div></form>`;
   const steps=bankSteps(step);
   const line=(label,val,copy)=>val?`<div class="bankrow"><span class="mut">${label}</span><span style="display:flex;align-items:center;gap:8px"><b class="${copy?'num':''}">${esc(val)}</b>
    ${copy?`<button class="lnk" onclick="App.copy('${esc(val)}')" aria-label="نسخ ${label}">${ic('copy',16)}</button>`:''}</span></div>`:'';
   if(step===2) return bar('تحويل مصرفي')+steps+
-   `<div class="sum"><div class="kv tot" style="border:0;margin:0;padding:0"><span style="color:var(--t1)">حوّل مبلغ</span><b style="font-size:19px">${L(S.topAmount)}</b></div></div>
+   `<div class="sum"><div class="kv tot" style="border:0;margin:0;padding:0"><span style="color:var(--t1)">حوّل مبلغ</span><span style="display:flex;align-items:center;gap:8px"><b style="font-size:19px">${L(S.topAmount)}</b><button class="lnk" onclick="App.copy('${S.topAmount}')" aria-label="نسخ المبلغ">${ic('copy',16)}</button></span></div></div>
     <div class="sum">${line('المصرف',b.bank)}${line('الاسم',b.holder)}${line('رقم الحساب',b.account,1)}${line('الآيبان',b.iban,1)}</div>
+    <button class="btn ghost" style="margin-top:10px" onclick="App.copy(${esc(JSON.stringify([b.bank&&'المصرف: '+b.bank,b.holder&&'الاسم: '+b.holder,b.account&&'رقم الحساب: '+b.account,b.iban&&'الآيبان: '+b.iban].filter(Boolean).join('\n')))})">${ic('copy',16,2)} نسخ كل بيانات الحساب</button>
     ${b.note?`<div class="note">${esc(b.note)}</div>`:''}
+    <div class="hintbox">${ic('info',16,2)}<span>اكتب رقم هاتفك في خانة الملاحظات عند التحويل لتسريع مطابقة الإيصال.</span></div>
     <p class="mut small" style="margin:12px 4px;display:flex;gap:6px;align-items:center">${ic('clock',14,2)} بعد إتمام التحويل، اضغط «التالي» وارفع صورة الإيصال</p>
-    <div style="height:100px"></div><div class="dock low"><button class="btn" onclick="App.bankNext()">التالي</button></div>`;
+    <div class="dock inl"><button class="btn" onclick="App.bankNext()">التالي</button></div>`;
   return bar('صورة الإيصال')+steps+
    `<form onsubmit="event.preventDefault();App.sendTopup(this)">
     <label class="up" id="upbox">${ic('img',28,1.5)}<div style="margin-top:8px">ارفع صورة إيصال التحويل</div>
      <input type="file" name="file" accept="image/*" onchange="App.pickFile(this)"></label>
     <label class="f"><span>رقم العملية <i class="opt">(اختياري)</i></span><input name="reference" dir="ltr" maxlength="60"></label>
     <div class="note">يُضاف الرصيد بعد تأكيد التحويل، وسيصلك إشعار فور إتمامه.</div>
-    <div style="height:100px"></div>
-    <div class="dock low"><button class="btn" type="submit">إرسال الطلب</button></div></form>`;
+    <div class="dock inl"><button class="btn" type="submit">إرسال الطلب</button></div></form>`;
 }
 App.bankNext=()=>{S.bankStep=3;render();};
 App.pickFile=inp=>{const f=inp.files[0];if(!f)return;const box=$('#upbox');box.classList.add('has');
