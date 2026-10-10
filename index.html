@@ -766,6 +766,8 @@ button.stat{text-align:inherit}
 .amtline input{flex:1;min-width:0;border:0;background:transparent;font-size:34px;font-weight:800;letter-spacing:-1px;color:var(--t1);outline:none;text-align:left;height:auto;box-shadow:none!important;padding:0}
 .amtline input::-webkit-outer-spin-button,.amtline input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .amtline span{font-size:15px;color:var(--t2);font-weight:700}
+.secl{font-size:14px;font-weight:800;margin:22px 4px 10px;color:var(--t1)}
+.hintbox.warn{background:var(--warn-bg)}.hintbox.warn svg{color:var(--warn)}
 .amtchips{display:flex;gap:7px;margin-top:12px;scrollbar-width:none}
 .amtchips::-webkit-scrollbar{display:none}
 .amtchips button{background:var(--card);box-shadow:var(--sh);border-radius:999px;padding:9px 4px;font-size:14px;font-weight:800;color:var(--t1);flex:1 1 0;text-align:center}
@@ -2206,7 +2208,7 @@ App.gwVal=(k,v)=>{S.gwVals={...(S.gwVals||{}),[k]:v};};
 App.gwQuick=a=>{const i=$('input[name=amount]');if(i)i.value=a;App.gwAmt(a);};
 App.gwAmt=v=>{S.topAmount=r2(v);document.querySelectorAll('.amtchips button').forEach(x=>x.classList.toggle('on',+x.dataset.a===S.topAmount));const b=$('.dock .btn');if(!b)return;
   const g=gwList().find(x=>x.id===S.ctx);
-  b.textContent=`${g?.mode==='redirect'?'متابعة إلى صفحة الدفع':S.screen==='bank'?'التالي':'تأكيد الشحن'}${S.topAmount>0&&S.screen!=='bank'?` · ${L(S.topAmount)}`:''}`;trNode(b.parentElement);};
+  b.textContent=`${g?.mode==='redirect'?'متابعة إلى صفحة الدفع':S.screen==='bank'?'إرسال للمراجعة':'تأكيد الشحن'}${S.topAmount>0&&S.screen!=='bank'?` · ${L(S.topAmount)}`:''}`;trNode(b.parentElement);};
 App.gwSubmit=form=>act(form.querySelector('button[type=submit]'),async()=>{
   const g=gwList().find(x=>x.id===S.ctx);if(!g)return;
   const f=formData(form),fields={};
@@ -2222,7 +2224,6 @@ const checkAmount=()=>{const t=S.pub.topup||{},a=S.topAmount;
   if(!(a>0)){toast('أدخل المبلغ');$('input[name=amount]')?.focus();return false;}
   if(t.min&&a<t.min){toast(`الحد الأدنى للشحن ${t.min} د.ل`);return false;}
   if(t.max&&a>t.max){toast(`الحد الأعلى للشحن ${t.max} د.ل`);return false;}return true;};
-App.bankAmt=()=>{if(!checkAmount())return;S.bankStep=2;render();};
 App.payGateway=async(gid,btn,fields)=>{
   const run=async()=>{
   const r=await S.api.startGatewayTopup(gid,S.topAmount,fields);
@@ -2270,44 +2271,36 @@ function checkReturnedPayment(){
   if(q.get('pay')){try{history.replaceState(history.state,'',location.pathname);}catch(e){}}
   if(pid)waitPayment(pid);
 }
-function bankSteps(step){
-  return `<div class="steps"><span class="on">1</span><i class="${step>=2?'on':''}"></i><span class="${step>=2?'on':''}">2</span><i class="${step>=3?'on':''}"></i><span class="${step>=3?'on':''}">3</span></div>
-   <div class="stl"><small class="${step===1?'now':''}">المبلغ</small><small class="${step===2?'now':''}">حوّل</small><small class="${step===3?'now':''}">الإيصال</small></div>`;
-}
 function scBank(){
   const b=S.pub.bank||{},tp=S.pub.topup||{};
-  let step=S.bankStep||1; if(step>1&&!(S.topAmount>0)){step=S.bankStep=1;}
-  if(step===1) return bar('تحويل مصرفي')+bankSteps(1)+
-   `<form onsubmit="event.preventDefault();App.bankAmt()">
-     <label class="f gwf"><span>المبلغ</span><span class="amtwrap"><input name="amount" type="text" inputmode="decimal" dir="ltr" placeholder="0" value="${S.topAmount||''}" oninput="App.gwAmt(this.value)"><i>د.ل</i></span></label>
-     ${(()=>{const qa=[10,20,50,100,200,500].filter(a=>(!tp.min||a>=tp.min)&&(!tp.max||a<=tp.max)).slice(0,5);
-       return qa.length?`<div class="amtchips">${qa.map(a=>`<button type="button" data-a="${a}" class="${S.topAmount===a?'on':''}" onclick="App.gwQuick(${a})">${a}</button>`).join('')}</div>`:'';})()}
-     ${tp.min||tp.max?`<p class="amthint">${tp.min?`الحد الأدنى ${tp.min} د.ل`:''}${tp.min&&tp.max?' · ':''}${tp.max?`الحد الأعلى ${tp.max} د.ل`:''}</p>`:''}
-     <div class="dock inl"><button class="btn" type="submit">التالي</button></div></form>`;
-  const steps=bankSteps(step);
-  const line=(label,val,copy)=>val?`<div class="bankrow"><span class="mut">${label}</span><span style="display:flex;align-items:center;gap:8px"><b class="${copy?'num':''}">${esc(val)}</b>
-   ${copy?`<button class="lnk" onclick="App.copy('${esc(val)}')" aria-label="نسخ ${label}">${ic('copy',16)}</button>`:''}</span></div>`:'';
-  if(step===2) return bar('تحويل مصرفي')+steps+
-   `<div class="sum"><div class="kv tot" style="border:0;margin:0;padding:0"><span style="color:var(--t1)">حوّل مبلغ</span><span style="display:flex;align-items:center;gap:8px"><b style="font-size:19px">${L(S.topAmount)}</b><button class="lnk" onclick="App.copy('${S.topAmount}')" aria-label="نسخ المبلغ">${ic('copy',16)}</button></span></div></div>
-    <div class="sum">${line('المصرف',b.bank)}${line('الاسم',b.holder)}${line('رقم الحساب',b.account,1)}${line('الآيبان',b.iban,1)}</div>
-    <button class="btn ghost" style="margin-top:10px" onclick="App.copy(${esc(JSON.stringify([b.bank&&'المصرف: '+b.bank,b.holder&&'الاسم: '+b.holder,b.account&&'رقم الحساب: '+b.account,b.iban&&'الآيبان: '+b.iban].filter(Boolean).join('\n')))})">${ic('copy',16,2)} نسخ كل بيانات الحساب</button>
-    ${b.note?`<div class="note">${esc(b.note)}</div>`:''}
-    <div class="hintbox">${ic('info',16,2)}<span>اكتب رقم هاتفك في خانة الملاحظات عند التحويل لتسريع مطابقة الإيصال.</span></div>
-    <p class="mut small" style="margin:12px 4px;display:flex;gap:6px;align-items:center">${ic('clock',14,2)} بعد إتمام التحويل، اضغط «التالي» وارفع صورة الإيصال</p>
-    <div class="dock inl"><button class="btn" onclick="App.bankNext()">التالي</button></div>`;
-  return bar('صورة الإيصال')+steps+
+  const line=(label,val,copy)=>val?`<div class="bankrow"><span class="mut">${label}</span><span style="display:flex;align-items:center;gap:8px"><b class="${copy?'num':''}" dir="${copy?'ltr':'auto'}">${esc(val)}</b>
+   ${copy?`<button type="button" class="lnk" onclick="App.copy('${esc(val)}')" aria-label="نسخ ${label}">${ic('copy',16)}</button>`:''}</span></div>`:'';
+  const all=[b.bank&&'المصرف: '+b.bank,b.holder&&'الاسم: '+b.holder,b.account&&'رقم الحساب: '+b.account,b.iban&&'الآيبان: '+b.iban].filter(Boolean).join('\n');
+  const qa=[10,20,50,100,200,500].filter(a=>(!tp.min||a>=tp.min)&&(!tp.max||a<=tp.max)).slice(0,5);
+  return bar('تحويل مصرفي')+
    `<form onsubmit="event.preventDefault();App.sendTopup(this)">
-    <label class="up" id="upbox">${ic('img',28,1.5)}<div style="margin-top:8px">ارفع صورة إيصال التحويل</div>
+    <div class="gwcard"><span class="mic logo"><img src="${esc(b.logo||'img/bank.png')}" alt=""></span>
+     <div><b>شحن عبر تحويل مصرفي</b><small>${esc(b.note||'تحويل يدوي ثم مراجعة وإضافة الرصيد')}</small></div></div>
+    <h3 class="secl">١. المبلغ</h3>
+    <label class="f gwf"><span class="amtwrap"><input name="amount" type="text" inputmode="decimal" dir="ltr" placeholder="0" value="${S.topAmount||''}" oninput="App.gwAmt(this.value)"><i>د.ل</i></span></label>
+    ${qa.length?`<div class="amtchips">${qa.map(a=>`<button type="button" data-a="${a}" class="${S.topAmount===a?'on':''}" onclick="App.gwQuick(${a})">${a}</button>`).join('')}</div>`:''}
+    ${tp.min||tp.max?`<p class="amthint">${tp.min?`الحد الأدنى ${tp.min} د.ل`:''}${tp.min&&tp.max?' · ':''}${tp.max?`الحد الأعلى ${tp.max} د.ل`:''}</p>`:''}
+    <h3 class="secl">٢. حوّل إلى هذا الحساب</h3>
+    <div class="sum">${line('المصرف',b.bank)}${line('الاسم',b.holder)}${line('رقم الحساب',b.account,1)}${line('الآيبان',b.iban,1)}</div>
+    <button type="button" class="btn ghost" style="margin-top:10px" onclick="App.copy(${esc(JSON.stringify(all))})">${ic('copy',16,2)} نسخ كل بيانات الحساب</button>
+    <div class="hintbox warn">${ic('info',16,2)}<span>حوّل المبلغ بالضبط، ويفضّل أن يكون التحويل باسمك المسجل، واكتب رقم هاتفك في الملاحظات إن أمكن لتسريع المطابقة.</span></div>
+    <h3 class="secl">٣. ارفع إيصال التحويل</h3>
+    <label class="up" id="upbox" style="margin-top:0">${ic('img',28,1.5)}<div style="margin-top:8px">اضغط لاختيار صورة الإيصال</div>
      <input type="file" name="file" accept="image/*" onchange="App.pickFile(this)"></label>
     <label class="f"><span>رقم العملية <i class="opt">(اختياري)</i></span><input name="reference" dir="ltr" maxlength="60"></label>
-    <div class="note">يُضاف الرصيد بعد تأكيد التحويل، وسيصلك إشعار فور إتمامه.</div>
-    <div class="dock inl"><button class="btn" type="submit">إرسال الطلب</button></div></form>`;
+    <button type="button" class="lnk" style="display:block;margin:14px auto 0" onclick="App.go('mytopups')">${ic('clock',14,2)} متابعة طلباتي السابقة</button>
+    <div style="height:96px"></div><div class="dock low"><button class="btn" type="submit">إرسال للمراجعة</button></div></form>`;
 }
-App.bankNext=()=>{S.bankStep=3;render();};
 App.pickFile=inp=>{const f=inp.files[0];if(!f)return;const box=$('#upbox');box.classList.add('has');
   [...box.childNodes].forEach(n=>{if(n!==inp)n.remove();});
   box.insertAdjacentHTML('afterbegin',`<img src="${URL.createObjectURL(f)}" alt="الإيصال"><div class="mut" style="margin-top:8px;font-size:12.5px">اضغط لتغيير الصورة</div>`);};
 App.sendTopup=form=>act(form.querySelector('button[type=submit]'),async()=>{
+  if(!checkAmount())return;
   const f=new FormData(form),file=f.get('file');
   if(!file||!file.size)throw new Error('أرفق صورة الإيصال');
   const image=await compressImage(file);
