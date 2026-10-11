@@ -1755,7 +1755,11 @@ App.authBack=()=>{clearInterval(S.otpTimer);$$('.toast').forEach(x=>x.remove());
   S.authFlow=false;render();};
 App.eye=b=>{const i=b.previousElementSibling;i.type=i.type==='password'?'text':'password';};
 App.demoIn=r=>r?S.api.demoRole(r):S.api.demoAdmin();
-App.showTerms=()=>sheet(`<h3 class="shh">الشروط وسياسة الاستخدام</h3><div class="prose" style="margin-top:12px">${paras((isEN()&&S.pub.termsEn)||S.pub.terms||'لم تُضف الشروط بعد.')}</div>`);
+App.showTerms=async()=>{
+  // قبل تسجيل الدخول لم تُحمَّل الإعدادات بعد: نجلب الشروط عند الحاجة
+  if(!S.pub||(!S.pub.terms&&!S.pub.termsEn)){try{const p=await S.api.getPublicSettings();S.pub={...(S.pub||{}),...p};}catch(e){}}
+  return App.showTerms2();};
+App.showTerms2=()=>sheet(`<h3 class="shh">الشروط وسياسة الاستخدام</h3><div class="prose" style="margin-top:12px">${paras((isEN()&&S.pub.termsEn)||S.pub.terms||'لم تُضف الشروط بعد.')}</div>`);
 const goStep=st=>{$$('.toast').forEach(x=>x.remove());S.authStep=st;render();setTimeout(()=>$('.asheet input')?.focus(),120);};
 function startOtpTimer(){
   clearInterval(S.otpTimer);let n=60;
