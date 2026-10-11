@@ -1043,6 +1043,7 @@ body{font-weight:500}
 .emaillnk{margin:2px 0 4px;font-size:13.5px;font-weight:600;color:var(--blue)}
 .asheet .giftline{margin:14px 0 4px}
 .f>span.pwhint{display:flex;align-items:center;gap:10px;margin:8px 0 0}.f>span.pwhint .pwbar{display:block;flex:1;margin:0}.f[hidden]{display:none!important}
+.phwrap .cc.nocc{padding:0 4px 0 16px;border-right:0}.phwrap .cc.nocc svg{color:var(--t3)}.f .phwrap input{font-size:17px;letter-spacing:.5px}
 </style>
 </head>
 <body>
@@ -1737,8 +1738,8 @@ function scAuth(){
   let body='';
   if(st==='phone') body=`<h1 class="stitle">مرحباً بك 👋</h1>
     <form onsubmit="event.preventDefault();App.phoneNext(this)" novalidate>
-     <label class="f"><span>رقم الهاتف</span><span class="phwrap"><span class="cc">${ic('phone',16)}<b>+218</b></span>
-      <input name="phone" type="tel" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="91 234 5678" maxlength="20" value="${esc(P.phone?P.phone.replace(/^0/,''):'')}"></span></label>
+     <label class="f"><span>رقم الهاتف</span><span class="phwrap"><span class="cc nocc">${ic('phone',18)}</span>
+      <input name="phone" type="tel" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="09X XXX XXXX" maxlength="20" value="${esc(P.phone?P.phone.replace(/^0/,''):'')}"></span></label>
      <button class="btn" type="submit" style="margin-top:18px">متابعة</button></form>
     <div class="alinks"><button class="lnk mutlnk" onclick="App.showTerms()">بالمتابعة فإنك توافق على <u>الشروط وسياسة الاستخدام</u></button></div>
     ${S.api?.demo?`<button class="btn sec" style="margin-top:6px" onclick="App.demoIn()">دخول تجريبي (حساب الإدارة)</button>
