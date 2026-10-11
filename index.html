@@ -2443,7 +2443,7 @@ function scHelp(){
   const faq=((isEN()&&S.pub.helpEn)||S.pub.help||'').split('\n').map(l=>l.split('|')).filter(x=>x[0]?.trim()&&x[1]);
   const sp=S.pub.support||{};
   return bar('المساعدة والدعم')+
-   `<p class="mut" style="margin:2px 4px 14px;line-height:1.8">فريق الدعم جاهز لمساعدتك. اختر الطريقة الأنسب لك.</p>
+   `<p class="mut" style="margin:2px 4px 14px;line-height:1.8">فريق الدعم جاهز لمساعدتك. تواصل معنا بالطريقة المتاحة.</p>
     <div class="sup">
      ${sp.whatsapp?`<button class="scard wa" onclick="App.run({type:'whatsapp'})"><span class="sci"><img src="img/whatsapp.png" alt=""></span>
        <span class="g"><b>تواصل عبر واتساب</b><small>${esc(sp.hours||'الرد خلال دقائق')}</small></span>${ic('chev',16,2.2)}</button>`:''}
