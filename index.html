@@ -1009,6 +1009,7 @@ body{font-weight:500}
 .hidecd{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;color:#B7C6DD}
 .hidecd b{font-variant-numeric:tabular-nums;color:#fff}
 .codebox .hidecd{display:flex;justify-content:center}
+.cbline{display:flex;align-items:center;gap:7px;justify-content:center;font-size:12.5px;color:var(--ok,#16805C);background:color-mix(in srgb,var(--ok,#16805C) 10%,transparent);border-radius:10px;padding:7px 10px;margin:0 0 10px}.cbline b{font-weight:700}.cbkv b{color:var(--ok,#16805C)}
 .reportbtn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:10px;height:46px;border-radius:999px;background:var(--card);color:var(--err);font-size:13.5px;font-weight:700;box-shadow:var(--sh)}
 .oflag{flex:0 0 auto;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--warn);background:var(--warn-bg)}
 .sup{display:flex;flex-direction:column;gap:12px}
@@ -1369,7 +1370,7 @@ function createDemoApi() {
   const D = {brands: [], products: [], batches: [], codes: [], orders: [], topups: [], receipts: {}, ledger: {}, notifications: [], banners: [], giftRuns: [], accessLogs: [],
     pub: {
       storeName: 'Pronto',
-      signupBonus: 5,
+      signupBonus: 5, cashback: {active: true, pct: 2},
       auth: {otp: true, channels: []},
       bank: {holder: 'Pronto', bank: 'مصرف الجمهورية', account: '000123456789', iban: '', note: 'المراجعة من 9 الصبح لـ 11 الليل'},
       categories: [{id: 'games', name: 'ألعاب', icon: 'pad', active: true, sort: 0}, {id: 'stores', name: 'متاجر', icon: 'card', active: true, sort: 1}, {id: 'fun', name: 'ترفيه', icon: 'music', active: true, sort: 2}, {id: 'tel', name: 'اتصالات', icon: 'phone', active: true, sort: 3}],
@@ -1430,6 +1431,9 @@ function createDemoApi() {
       price, listPrice: p.price, costLYD: c.unitCostLYD, profit: r2(price - c.unitCostLYD), code: c.code, status: 'delivered', createdAt: at};
     D.orders.unshift(o);
     Lg(user.id, {type: 'purchase', amount: -price, balanceAfter: user.balance, note: fullName(p), createdAt: at});
+    const cb = D.pub.cashback; const cbAmt = cb?.active && cb.pct > 0 ? Math.floor(price * cb.pct) / 100 : 0;
+    if (cbAmt > 0) { user.balance = r2(user.balance + cbAmt); o.cashback = cbAmt;
+      Lg(user.id, {type: 'cashback', amount: cbAmt, balanceAfter: user.balance, note: `كاش باك ${cb.pct}% — ${fullName(p)}`, createdAt: at}); }
     return o;
   }
   // الكتالوج التجريبي
@@ -1546,7 +1550,7 @@ function createDemoApi() {
       if (avail < qty) throw new Error(avail ? `المتوفر حالياً ${avail} فقط من هذه الفئة` : 'نفدت هذه البطاقة من المخزون');
       if (cur.balance < eff(p) * qty) throw new Error('رصيدك لا يكفي لهذا الطلب');
       const os = []; for (let i = 0; i < qty; i++) os.push(sell(cur, productId, now(), expected));
-      return {orderIds: os.map(o => o.id), orderId: os[0].id, price: os[0].price, qty, total: r2(os[0].price * qty), balance: cur.balance}; }),
+      return {orderIds: os.map(o => o.id), orderId: os[0].id, price: os[0].price, qty, total: r2(os[0].price * qty), cashback: r2(os.reduce((a, o) => a + (o.cashback || 0), 0)), balance: cur.balance}; }),
     myOrders: () => wait(D.orders.filter(o => o.uid === cur.id).map(({code, ...o}) => o)),
     revealCode: orderId => wait((() => { D.accessLogs.push({orderId, byAdmin: cur === me, at: now()}); return D.orders.find(o => o.id === orderId)?.code; })()),
     orderLogs: orderId => wait(D.accessLogs.filter(l => l.orderId === orderId)),
@@ -1582,8 +1586,9 @@ function createDemoApi() {
     listOrders: () => wait(D.orders.map(({code, ...o}) => o)),
     refundOrder: (oid, reason) => tryy(() => { const o = D.orders.find(x => x.id === oid); if (o.status === 'refunded') throw new Error('هذا الطلب مسترجع من قبل');
       if (!reason) throw new Error('اكتب سبب الاسترجاع');
-      const u = find(o.uid); u.balance = r2(u.balance + o.price); o.status = 'refunded'; o.refundReason = reason; o.profit = 0;
+      const u = find(o.uid); u.balance = r2(u.balance + o.price - (o.cashback || 0)); o.status = 'refunded'; o.refundReason = reason; o.profit = 0;
       Lg(u.id, {type: 'refund', amount: o.price, balanceAfter: u.balance, note: `استرجاع: ${o.productName}`});
+      if (o.cashback) Lg(u.id, {type: 'cashback', amount: -o.cashback, balanceAfter: u.balance, note: `إلغاء الكاش باك: ${o.productName}`});
       Nt(u.id, 'رجعنا قيمة طلبك', `${o.price} د.ل رجعت لمحفظتك — ${reason}`, {type: 'screen', value: 'wallet'}); }),
     listCustomers: () => wait(D.customers),
     customerLedger: u => wait(D.ledger[u] || []),
@@ -2053,12 +2058,15 @@ function scBrand(){
    <div style="height:150px"></div></div>
    <div class="paybar2" id="paybar">${payBar(p)}</div>`;
 }
+const cbOn=()=>{const c=S.pub?.cashback;return c&&c.active&&c.pct>0?c:null;};
+const cbLine=total=>{const c=cbOn();if(!c)return '';const v=Math.floor(total*c.pct)/100;return v>0?`<div class="cbline">${ic('gift',15,2)}<span>كاش باك ${c.pct}% — يرجع لمحفظتك <b>${L(v)}</b></span></div>`:'';};
 function payBar(p){
   const bal=S.profile.balance;
   if(!p) return `<div class="pinfo"><span>رصيدك</span><b>${L(bal)}</b></div><div class="pbar"><button class="btn" disabled>اختر الفئة</button></div>`;
   const max=Math.min(p.stock,maxQty());if(S.qty>max)S.qty=max;if(S.qty<1)S.qty=1;
   const price=eff(p),total=r2(price*S.qty),short=r2(total-bal);
   return `<div class="pinfo">${short>0?`<span class="errc">رصيدك ناقص ${L(short)}</span><b>${L(bal)}</b>`:`<span>رصيدك بعد الشراء</span><b>${L(bal-total)}</b>`}</div>
+   ${cbLine(total)}
    <div class="pbar"><div class="qty2"><button onclick="App.qty(1)" ${S.qty>=max?'disabled':''} aria-label="زيادة">+</button><span class="num" aria-live="polite">${S.qty}</span><button onclick="App.qty(-1)" ${S.qty<=1?'disabled':''} aria-label="نقص">−</button></div>
    ${short>0?`<button class="btn" onclick="S.topAmount=${Math.ceil(short)};App.go('topup')">اشحن المحفظة<small>الإجمالي ${L(total)}</small></button>`
      :`<button class="btn" id="buyBtn" onclick="App.buy(this)">اشترِ ${S.qty>1?S.qty+' × ':''}${esc(tx(p,'name'))}<small>الإجمالي ${L(total)}</small></button>`}</div>`;
@@ -2081,7 +2089,7 @@ App.buy=btn=>{
     const codes=await Promise.all(ids.map(id=>S.api.revealCode(id).catch(()=>null)));
     await Promise.all([refreshProfile(),loadCatalog()]);
     S.cache.orders=null;S.selP=null;S.qty=1;
-    S.last={brandId:p.brandId,productName:name,qty:ids.length,price:r.price??price,total:r.total??price*ids.length,orders:ids.map((id,i)=>({id,code:codes[i]}))};
+    S.last={brandId:p.brandId,productName:name,qty:ids.length,price:r.price??price,total:r.total??price*ids.length,cashback:+r.cashback||0,orders:ids.map((id,i)=>({id,code:codes[i]}))};
     App.go('done');
   }).finally(()=>{if(document.contains(btn)){btn.disabled=false;refreshPay();}});
 };
@@ -2113,6 +2121,7 @@ function scDone(){
   <div class="sum" style="text-align:right">
   <div class="kv"><span>${o.qty>1?'السعر للكرت':'الكمية'}</span><b>${o.qty>1?L(o.price):'1'}</b></div>${o.qty>1?`<div class="kv"><span>الكمية</span><b>${o.qty}</b></div>`:''}
   <div class="kv"><span>الإجمالي</span><b>${L(o.total)}</b></div>
+  ${o.cashback>0?`<div class="kv cbkv"><span>كاش باك</span><b>+${L(o.cashback)}</b></div>`:''}
   <div class="kv"><span>رصيدك الآن</span><b>${L(S.profile.balance)}</b></div>
   ${ref?`<div class="kv"><span>رقم الطلب</span><b class="num" dir="ltr">#${esc(ref)}</b></div>`:''}</div>
   <button class="btn" style="margin-top:16px" onclick="App.go('orders')">عرض طلباتي</button>
@@ -2214,7 +2223,7 @@ function scOrder(){
 
 /* ================== المحفظة والشحن ================== */
 const TOPUP_STATUS={pending:['بانتظار التأكيد','b-warn'],approved:['تمت الإضافة','b-ok'],rejected:['مرفوض','b-err']};
-const LEDGER_ICON={purchase:'bag',topup:'plus',gift:'gift',bonus:'gift',refund:'plus',adjust:'edit'};
+const LEDGER_ICON={purchase:'bag',topup:'plus',gift:'gift',bonus:'gift',refund:'plus',cashback:'gift',adjust:'edit'};
 const gwVisible=g=>(g.mode!=='lightbox'&&g.id!=='ezonepay'&&g.id!=='moamalat')||!!S.profile?.isAdmin;
 const gwList=()=>(S.pub.gatewayList||DEFAULT_GATEWAYS.map(g=>({...g,active:!!S.pub.gateways?.[g.id]}))).slice().sort((a,b)=>(a.sort??0)-(b.sort??0));
 const methodName=m=>m==='bank'?'تحويل مصرفي':(tx(gwList().find(g=>g.id===m),'name')||m||'');
@@ -2683,7 +2692,7 @@ const EN = {'المحفظة':'Wallet','رصيدك':'Your balance','شحن':'Top 
 'حسابك موقوف، تواصل مع الدعم':'Your account is suspended, contact support',
 };
 /* ترجمات إضافية */
-Object.assign(EN,{'هدية':'Gift','تُضاف لمحفظتك بعد إنشاء الحساب':'added to your wallet after you sign up','6 أحرف على الأقل':'At least 6 characters','مقبولة':'Fair','جيدة':'Good','قوية':'Strong','+ إضافة بريد إلكتروني (اختياري)':'+ Add email (optional)','موافق':'I agree','كود فوري':'Instant code','يصلك خلال ثوانٍ':'Arrives in seconds','دفع آمن':'Secure payment','رصيدك محفوظ':'Your balance is safe','دعم واتساب':'WhatsApp support','نرد خلال دقائق':'We reply within minutes','بالمتابعة فإنك توافق على':'By continuing you agree to the','التفاصيل':'Details','كل المنتجات':'All products','مرحباً':'Hello','الأمان':'Security','البيانات الشخصية':'Personal details','موثّق':'Verified','مكتمل':'Completed','الإبلاغ عن مشكلة':'Report a problem','البحث':'Search','الرصيد، اضغط للشحن':'Balance, tap to top up','جديدة':'New','طلباتي':'My orders','اتصال هاتفي':'Phone call','الأسئلة الشائعة':'FAQ','فريق الدعم جاهز لمساعدتك.':'Our support team is ready to help.','عروض تنتهي قريباً':'Ending soon','اختر طريقة الشحن':'Choose a top-up method','تحويل ثم رفع الإيصال':'Transfer, then upload the receipt','إرسال للمراجعة':'Submit for review','اضغط لاختيار صورة الإيصال':'Tap to choose the receipt image','رقم العملية':'Reference number','متابعة طلباتي السابقة':'Track my earlier requests','نسخ كل بيانات الحساب':'Copy all account details','نسخ رقم الحساب':'Copy account number','١. المبلغ':'1. Amount','٢. حوّل إلى هذا الحساب':'2. Transfer to this account','٣. ارفع إيصال التحويل':'3. Upload the transfer receipt','تظهر هنا طلبات التحويل المصرفي مع حالتها.':'Your bank-transfer requests and their status appear here.','تحويل مصرفي أو دفع إلكتروني':'Bank transfer or online payment','اشحن رصيدك':'Top up your balance','المراجعة':'Review','حوّل المبلغ بالضبط، ويفضّل أن يكون التحويل باسمك المسجل، واكتب رقم هاتفك في الملاحظات إن أمكن لتسريع المطابقة.':'Transfer the exact amount, preferably from an account in your name, and add your phone number in the notes if possible to speed up matching.','الرصيد في المحفظة لا يُسحب نقدًا ويُستخدم للشراء داخل التطبيق.':'Wallet balance cannot be withdrawn as cash and is used for purchases inside the app.','باستخدامك للتطبيق أنت توافق على أن الرموز الرقمية لا تُسترجع بعد كشفها إلا إذا ثبت أن الكود لا يعمل.':'By using the app you agree that digital codes are not refundable once revealed, unless the code is proven not to work.','كيف أشحن محفظتي؟':'How do I top up my wallet?','أين أجد رموزي السابقة؟':'Where do I find my previous codes?','لم يعمل الرمز، ماذا أفعل؟':'The code did not work, what should I do?','جميعها محفوظة في «الطلبات».':'All of them are saved in “Orders”.','من «المحفظة» اختر المبلغ وطريقة الدفع. التحويل المصرفي يحتاج مراجعة، والدفع الإلكتروني يُضاف فوراً.':'Open “Wallet”, choose the amount and payment method. Bank transfers need review; online payments are added instantly.','افتح الطلب واضغط «هل هناك مشكلة في الكود؟» وتواصل معنا، وسنراجعه ونعيد قيمته إذا كان هناك خلل.':'Open the order, tap “Problem with the code?” and contact us. We will review it and refund the value if there is a fault.','الإصدار':'Version'});
+Object.assign(EN,{'كاش باك':'Cashback','هدية':'Gift','تُضاف لمحفظتك بعد إنشاء الحساب':'added to your wallet after you sign up','6 أحرف على الأقل':'At least 6 characters','مقبولة':'Fair','جيدة':'Good','قوية':'Strong','+ إضافة بريد إلكتروني (اختياري)':'+ Add email (optional)','موافق':'I agree','كود فوري':'Instant code','يصلك خلال ثوانٍ':'Arrives in seconds','دفع آمن':'Secure payment','رصيدك محفوظ':'Your balance is safe','دعم واتساب':'WhatsApp support','نرد خلال دقائق':'We reply within minutes','بالمتابعة فإنك توافق على':'By continuing you agree to the','التفاصيل':'Details','كل المنتجات':'All products','مرحباً':'Hello','الأمان':'Security','البيانات الشخصية':'Personal details','موثّق':'Verified','مكتمل':'Completed','الإبلاغ عن مشكلة':'Report a problem','البحث':'Search','الرصيد، اضغط للشحن':'Balance, tap to top up','جديدة':'New','طلباتي':'My orders','اتصال هاتفي':'Phone call','الأسئلة الشائعة':'FAQ','فريق الدعم جاهز لمساعدتك.':'Our support team is ready to help.','عروض تنتهي قريباً':'Ending soon','اختر طريقة الشحن':'Choose a top-up method','تحويل ثم رفع الإيصال':'Transfer, then upload the receipt','إرسال للمراجعة':'Submit for review','اضغط لاختيار صورة الإيصال':'Tap to choose the receipt image','رقم العملية':'Reference number','متابعة طلباتي السابقة':'Track my earlier requests','نسخ كل بيانات الحساب':'Copy all account details','نسخ رقم الحساب':'Copy account number','١. المبلغ':'1. Amount','٢. حوّل إلى هذا الحساب':'2. Transfer to this account','٣. ارفع إيصال التحويل':'3. Upload the transfer receipt','تظهر هنا طلبات التحويل المصرفي مع حالتها.':'Your bank-transfer requests and their status appear here.','تحويل مصرفي أو دفع إلكتروني':'Bank transfer or online payment','اشحن رصيدك':'Top up your balance','المراجعة':'Review','حوّل المبلغ بالضبط، ويفضّل أن يكون التحويل باسمك المسجل، واكتب رقم هاتفك في الملاحظات إن أمكن لتسريع المطابقة.':'Transfer the exact amount, preferably from an account in your name, and add your phone number in the notes if possible to speed up matching.','الرصيد في المحفظة لا يُسحب نقدًا ويُستخدم للشراء داخل التطبيق.':'Wallet balance cannot be withdrawn as cash and is used for purchases inside the app.','باستخدامك للتطبيق أنت توافق على أن الرموز الرقمية لا تُسترجع بعد كشفها إلا إذا ثبت أن الكود لا يعمل.':'By using the app you agree that digital codes are not refundable once revealed, unless the code is proven not to work.','كيف أشحن محفظتي؟':'How do I top up my wallet?','أين أجد رموزي السابقة؟':'Where do I find my previous codes?','لم يعمل الرمز، ماذا أفعل؟':'The code did not work, what should I do?','جميعها محفوظة في «الطلبات».':'All of them are saved in “Orders”.','من «المحفظة» اختر المبلغ وطريقة الدفع. التحويل المصرفي يحتاج مراجعة، والدفع الإلكتروني يُضاف فوراً.':'Open “Wallet”, choose the amount and payment method. Bank transfers need review; online payments are added instantly.','افتح الطلب واضغط «هل هناك مشكلة في الكود؟» وتواصل معنا، وسنراجعه ونعيد قيمته إذا كان هناك خلل.':'Open the order, tap “Problem with the code?” and contact us. We will review it and refund the value if there is a fault.','الإصدار':'Version'});
 const AR_MONTHS = null;
 let LANG = store.get('lang') === 'en' ? 'en' : 'ar';
 const isEN = () => LANG === 'en';
@@ -2699,6 +2708,7 @@ const trText = s => {
   return out;
 };
 const TR_PARTS = [
+  [/^كاش باك (\d+(?:\.\d+)?)% — يرجع لمحفظتك\s*/, 'Cashback $1% — back to your wallet '], [/^كاش باك (\d+(?:\.\d+)?)% — /, 'Cashback $1% — '], [/^إلغاء الكاش باك: /, 'Cashback reversed: '],
   [/د\.ل/g, 'LYD'], [/ عملية/g, ' orders'], [/ منتج/g, ' products'], [/ فئات/g, ' amounts'], [/ فئة/g, ' amount'],
   [/^من (?=\d)/, 'from '], [/^اشحن /, 'Top up '], [/^شحن /, 'Top-up '], [/ قيد المراجعة/, ' in review'], [/^طلب شحن /, 'Top-up '], [/ مرفوض/, ' rejected'], [/^اشترِ /, 'Buy '], [/^الإجمالي /, 'Total '], [/^الرموز \(/, 'Codes ('], [/^رصيدك ناقص /, 'You need '], [/يمكنك شراء من 1 إلى /, 'You can buy 1 to '], [/ بطاقات في الطلب الواحد/, ' cards per order'], [/^مرحباً /, 'Welcome '], [/الرمز غير صحيح، تبقّى /, 'Wrong PIN, '], [/ محاولات$/, ' attempts left'], [/باقي /g, 'left '], [/ أيام/g, ' days'], [/ ساعة/g, ' hours'], [/ دقيقة/g, ' minutes'],
   [/إعادة الإرسال بعد /, 'Resend in '], [/ ث$/, 's'], [/الحد الأدنى للشحن /, 'Minimum top-up is '], [/الحد الأعلى للشحن /, 'Maximum top-up is '],
@@ -3498,13 +3508,14 @@ App.refund=(oid,form)=>act(form.querySelector('button[type=submit]'),async()=>{
 /* ---------- الإعدادات ---------- */
 ADMIN.settings=()=>adminLoad(async()=>{
   const [priv,pub]=await Promise.all([S.api.getPrivateSettings(),S.api.getPublicSettings()]);
-  const b=pub.bank||{},g=pub.gateways||{},s=pub.support||{},t=pub.topup||{},m=pub.maintenance||{},sb=priv.signupBonus||{};
+  const b=pub.bank||{},g=pub.gateways||{},s=pub.support||{},t=pub.topup||{},m=pub.maintenance||{},sb=priv.signupBonus||{},cbk=pub.cashback||{};
   const card=(id,title,inner,sub='')=>`<form class="card" onsubmit="event.preventDefault();App.saveSet('${id}',this)"><h3 style="margin-bottom:${sub?6:14}px">${title}</h3>${sub?`<p class="mut small" style="margin-bottom:14px">${sub}</p>`:''}${inner}<button class="btn" type="submit">حفظ</button></form>`;
   body(`<div class="admin-grid cols"><div class="stack">
   ${card('store','المتجر والدعم',fld('اسم المتجر',inp('storeName',pub.storeName||'Pronto','maxlength="30"'))+
     `<div class="two">${fld('واتساب الدعم',inp('whatsapp',s.whatsapp,'dir="ltr" placeholder="09xxxxxxxx"'))}${fld('هاتف الدعم',inp('phone',s.phone,'dir="ltr"'))}</div>`+
     fld('أوقات الدعم',inp('hours',s.hours,'placeholder="يوميًا من 9 الصبح لـ 11 الليل"'))+fld('أكبر عدد كروت في الطلب الواحد',num('maxQty',pub.maxQty||10,'step="1" min="1" max="20"'),'من 1 لين 20.'))}
   ${card('bonus','هدية التسجيل 🎁',chk('active',sb.active,'مفعّلة')+fld('المبلغ (د.ل)',num('amount',sb.amount||'','min="0"')),'تنضاف تلقائيًا لكل زبون جديد متحقق من رقمه، مرة وحدة لكل رقم.')}
+  ${card('cashback','كاش باك الزبائن 💸',chk('active',cbk.active,'مفعّل على كل عملية شراء')+fld('النسبة (%)',num('pct',cbk.pct||'','step="0.5" min="0" max="20"')),'ينضاف تلقائيًا لمحفظة الزبون بعد كل شراء، ويُخصم لو الطلب اتسترجع. تقفله وقت ما تبي من هنا.')}
   ${card('topup','حدود الشحن',`<div class="two">${fld('أقل مبلغ',num('min',t.min||''))}${fld('أكبر مبلغ',num('max',t.max||''))}</div>`+
     fld('المبالغ السريعة',inp('amounts',(t.amounts||[50,100,200]).join('، '),'dir="rtl" placeholder="20، 50، 100، 200"'),'تفصل بينها بفاصلة.'))}
   ${card('margin','تنبيه الهامش',fld('نبّهني لما هامش الربح يقل عن (%)',num('marginAlertPct',priv.marginAlertPct??8,'step="0.5"')),'يُحسب على آخر تكلفة دفعة أكواد مقارنة بسعر البيع الحالي.')}
@@ -3523,6 +3534,7 @@ App.saveSet=(id,form)=>act(form.querySelector('button[type=submit]'),async()=>{
   if(id==='store')await P({maxQty:Math.max(1,Math.min(20,Math.floor(dnum(f.maxQty))||10)),storeName:f.storeName.trim()||'Pronto',support:{whatsapp:normPhone(f.whatsapp),phone:normPhone(f.phone),hours:f.hours.trim()}});
   if(id==='bonus'){const amount=r2(f.amount),active=yes(f.active);if(active&&!(amount>0))throw new Error('اكتب مبلغ الهدية');
     await S.api.savePrivateSettings({signupBonus:{active,amount}});await P({signupBonus:active?amount:0});}
+  if(id==='cashback'){const active=yes(f.active),pct=Math.round(dnum(f.pct)*100)/100;if(active&&!(pct>0&&pct<=20))throw new Error('اكتب نسبة بين 0.1 و 20');await P({cashback:{active,pct:pct||0}});}
   if(id==='topup'){const amounts=(f.amounts||'').split(/[,،\s]+/).map(dnum).filter(x=>x>0).slice(0,6);const min=r2(f.min),max=r2(f.max);
     if(min&&max&&min>max)throw new Error('أقل مبلغ أكبر من أكبر مبلغ');await P({topup:{min,max,amounts}});}
   if(id==='margin')await S.api.savePrivateSettings({marginAlertPct:dnum(f.marginAlertPct)||0});
