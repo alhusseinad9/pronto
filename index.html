@@ -1023,6 +1023,7 @@ body{font-weight:500}
 .qi{width:30px;height:30px;border-radius:10px;background:var(--soft);color:var(--blue);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
 .qrow.open .qi{background:var(--blue);color:#fff}
 .ans{padding:0 14px 14px 14px;margin-inline-start:41px}
+[dir=ltr] svg[data-i=chev],[dir=ltr] svg[data-i=back]{transform:scaleX(-1)}
 </style>
 </head>
 <body>
@@ -1181,7 +1182,7 @@ eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12"
 send:'<path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/>',layout:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/>',
 link:'<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
 fire:'<path d="M12 22c4.4 0 7-3 7-7 0-3-2-6-4-8 0 2-1 3.5-2.5 3.5C11 10.5 12 6 9 3c0 4-5 6.5-5 12 0 4 3.6 7 8 7z"/>'};
-const ic=(n,s,w)=>`<svg width="${s||20}" height="${s||20}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w||1.8}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]||I.card}</svg>`;
+const ic=(n,s,w)=>`<svg data-i="${n}" width="${s||20}" height="${s||20}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w||1.8}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]||I.card}</svg>`;
 const ICONS=[['pad','ألعاب'],['card','بطاقة'],['play','بلايستيشن'],['globe','متجر'],['star','نجمة'],['music','ترفيه'],['phone','اتصالات'],['gift','هدية'],
   ['wallet','محفظة'],['tag','عروض'],['trophy','مسابقة'],['chat','دعم'],['bolt','فوري'],['fire','رائج'],['help','مساعدة'],['info','معلومة'],['doc','صفحة'],['bell','تنبيه']];
 const GR=['g1','g2','g3','g4','g5','g6'];
@@ -2645,6 +2646,8 @@ const EN = {'المحفظة':'Wallet','رصيدك':'Your balance','شحن':'Top 
 'رصيدك لا يكفي لهذه البطاقة':'Your balance is not enough for this card','نفدت هذه البطاقة من المخزون':'This card is out of stock',
 'حسابك موقوف، تواصل مع الدعم':'Your account is suspended, contact support',
 };
+/* ترجمات إضافية */
+Object.assign(EN,{'التفاصيل':'Details','كل المنتجات':'All products','مرحباً':'Hello','الأمان':'Security','البيانات الشخصية':'Personal details','موثّق':'Verified','مكتمل':'Completed','الإبلاغ عن مشكلة':'Report a problem','البحث':'Search','الرصيد، اضغط للشحن':'Balance, tap to top up','جديدة':'New','طلباتي':'My orders','اتصال هاتفي':'Phone call','الأسئلة الشائعة':'FAQ','فريق الدعم جاهز لمساعدتك.':'Our support team is ready to help.','عروض تنتهي قريباً':'Ending soon','اختر طريقة الشحن':'Choose a top-up method','تحويل ثم رفع الإيصال':'Transfer, then upload the receipt','إرسال للمراجعة':'Submit for review','اضغط لاختيار صورة الإيصال':'Tap to choose the receipt image','رقم العملية':'Reference number','متابعة طلباتي السابقة':'Track my earlier requests','نسخ كل بيانات الحساب':'Copy all account details','نسخ رقم الحساب':'Copy account number','١. المبلغ':'1. Amount','٢. حوّل إلى هذا الحساب':'2. Transfer to this account','٣. ارفع إيصال التحويل':'3. Upload the transfer receipt','تظهر هنا طلبات التحويل المصرفي مع حالتها.':'Your bank-transfer requests and their status appear here.','تحويل مصرفي أو دفع إلكتروني':'Bank transfer or online payment','اشحن رصيدك':'Top up your balance','المراجعة':'Review','حوّل المبلغ بالضبط، ويفضّل أن يكون التحويل باسمك المسجل، واكتب رقم هاتفك في الملاحظات إن أمكن لتسريع المطابقة.':'Transfer the exact amount, preferably from an account in your name, and add your phone number in the notes if possible to speed up matching.','الرصيد في المحفظة لا يُسحب نقدًا ويُستخدم للشراء داخل التطبيق.':'Wallet balance cannot be withdrawn as cash and is used for purchases inside the app.','باستخدامك للتطبيق أنت توافق على أن الرموز الرقمية لا تُسترجع بعد كشفها إلا إذا ثبت أن الكود لا يعمل.':'By using the app you agree that digital codes are not refundable once revealed, unless the code is proven not to work.','كيف أشحن محفظتي؟':'How do I top up my wallet?','أين أجد رموزي السابقة؟':'Where do I find my previous codes?','لم يعمل الرمز، ماذا أفعل؟':'The code did not work, what should I do?','جميعها محفوظة في «الطلبات».':'All of them are saved in “Orders”.','من «المحفظة» اختر المبلغ وطريقة الدفع. التحويل المصرفي يحتاج مراجعة، والدفع الإلكتروني يُضاف فوراً.':'Open “Wallet”, choose the amount and payment method. Bank transfers need review; online payments are added instantly.','افتح الطلب واضغط «هل هناك مشكلة في الكود؟» وتواصل معنا، وسنراجعه ونعيد قيمته إذا كان هناك خلل.':'Open the order, tap “Problem with the code?” and contact us. We will review it and refund the value if there is a fault.','الإصدار':'Version'});
 const AR_MONTHS = null;
 let LANG = store.get('lang') === 'en' ? 'en' : 'ar';
 const isEN = () => LANG === 'en';
@@ -2661,13 +2664,13 @@ const trText = s => {
 };
 const TR_PARTS = [
   [/د\.ل/g, 'LYD'], [/ عملية/g, ' orders'], [/ منتج/g, ' products'], [/ فئات/g, ' amounts'], [/ فئة/g, ' amount'],
-  [/^من /, 'from '], [/^اشحن /, 'Top up '], [/^شحن /, 'Top-up '], [/ قيد المراجعة/, ' in review'], [/^طلب شحن /, 'Top-up '], [/ مرفوض/, ' rejected'], [/^اشترِ /, 'Buy '], [/^الإجمالي /, 'Total '], [/^الرموز \(/, 'Codes ('], [/^رصيدك ناقص /, 'You need '], [/يمكنك شراء من 1 إلى /, 'You can buy 1 to '], [/ بطاقات في الطلب الواحد/, ' cards per order'], [/^مرحباً /, 'Welcome '], [/الرمز غير صحيح، تبقّى /, 'Wrong PIN, '], [/ محاولات$/, ' attempts left'], [/باقي /g, 'left '], [/ أيام/g, ' days'], [/ ساعة/g, ' hours'], [/ دقيقة/g, ' minutes'],
+  [/^من (?=\d)/, 'from '], [/^اشحن /, 'Top up '], [/^شحن /, 'Top-up '], [/ قيد المراجعة/, ' in review'], [/^طلب شحن /, 'Top-up '], [/ مرفوض/, ' rejected'], [/^اشترِ /, 'Buy '], [/^الإجمالي /, 'Total '], [/^الرموز \(/, 'Codes ('], [/^رصيدك ناقص /, 'You need '], [/يمكنك شراء من 1 إلى /, 'You can buy 1 to '], [/ بطاقات في الطلب الواحد/, ' cards per order'], [/^مرحباً /, 'Welcome '], [/الرمز غير صحيح، تبقّى /, 'Wrong PIN, '], [/ محاولات$/, ' attempts left'], [/باقي /g, 'left '], [/ أيام/g, ' days'], [/ ساعة/g, ' hours'], [/ دقيقة/g, ' minutes'],
   [/إعادة الإرسال بعد /, 'Resend in '], [/ ث$/, 's'], [/الحد الأدنى للشحن /, 'Minimum top-up is '], [/الحد الأعلى للشحن /, 'Maximum top-up is '],
   [/اختر المبلغ اللي تبي تشحنه/, 'Choose the amount you want to add'], [/تم شحن /, 'Topped up '], [/ لمحفظتك/g, ' to your wallet'],
   [/أضفنا /, 'We added '], [/الكود أرسلناه/, 'Code sent'], [/على واتساب/g, 'on WhatsApp'], [/على تيليغرام/g, 'on Telegram'],
   [/برسالة نصية/g, 'by SMS'], [/برسالة/g, 'by SMS'], [/أرسله /, 'Send it '], [/نسخة تجريبية: الرمز هو/, 'Demo version: the code is'],
   [/ما فيش نتائج لـ/, 'No results for'], [/وفّر /, 'Save '], [/هدية /, 'Gift of '], [/لكل حساب جديد/, 'for every new account'],
-  [/اشترِ مرة ثانية/, 'Buy again'], [/ من /g, ' of '], [/ متاحة/g, ' available'],
+  [/اشترِ مرة ثانية/, 'Buy again'], [/(\d) من (\d)/g, '$1 of $2'], [/^الإصدار /, 'Version '], [/ · الإصدار /, ' · Version '], [/الحد الأدنى /, 'Minimum '], [/ · الحد الأعلى /, ' · Maximum '], [/^عبر تحويل مصرفي/, 'via bank transfer'], [/ عبر تحويل مصرفي/, ' via bank transfer'], [/يوميًا من (\d+) الصبح لـ (\d+) الليل/, 'Daily $1 AM to $2 PM'], [/^المراجعة /, 'Review '], [/ من (\d+) الصبح لـ (\d+) الليل/, ' $1 AM to $2 PM'], [/ متاحة/g, ' available'],
 ];
 function applyLang() {
   const r = document.documentElement;
