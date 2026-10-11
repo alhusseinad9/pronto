@@ -2169,7 +2169,7 @@ function scOrder(){
         <div id="dshare" style="margin-top:8px">${shareBtn(code,'wide')}</div>`}</div></div>
    <div class="sum"><div class="kv"><span>المبلغ</span><b>${L(o.price)}</b></div>
    <div class="kv"><span>طريقة الدفع</span><b>رصيد المحفظة</b></div>
-   <div class="kv"><span>رقم الطلب</span><b class="num" style="font-size:12px">${esc(o.id)}</b></div>
+   <div class="kv"><span>رقم الطلب</span><b class="num" dir="ltr">#${esc(String(o.id).slice(-6).toUpperCase())}</b></div>
    <div class="kv"><span>التاريخ</span><b>${fdate(o.createdAt)}</b></div></div>
    ${sup.whatsapp&&!ref?`<button class="helprow" onclick="window.open('${waLink(sup.whatsapp,`مرحباً، لديّ مشكلة في كود الطلب رقم ${o.id}`)}','_blank')">
      <span class="ico wa"><img src="img/whatsapp.png" alt=""></span><span class="grow"><b>هل هناك مشكلة في الرمز؟</b><small>تواصل معنا عبر واتساب</small></span>${ic('chev',16,2.2)}</button>`:''}`;
