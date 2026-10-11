@@ -1032,6 +1032,12 @@ body{font-weight:500}
 .mutlnk u{color:var(--blue);text-decoration:none;font-weight:600}
 .alang{display:flex;align-items:center;gap:6px;font-size:13.5px;padding:9px 16px;background:rgba(255,255,255,.22);top:calc(22px + env(safe-area-inset-top))}
 .agreebar{position:sticky;bottom:-1px;margin:14px -4px 0;padding:12px 4px calc(6px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--bg) 70%,transparent)}
+.otpbox{position:relative;display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-top:24px}
+.otpbox .oc{height:62px;border-radius:16px;background:var(--card);box-shadow:var(--sh);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;border:2px solid transparent;transition:border-color .15s}
+.otpbox .oc.on{border-color:var(--blue)}.otpbox .oc.fill{color:var(--t1)}
+.otpbox .otp{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;background:transparent;box-shadow:none;font-size:16px;letter-spacing:0}
+.alinks .lnk.alt{background:var(--card);box-shadow:var(--sh);padding:10px 18px;border-radius:999px;font-size:13px}
+.alinks .lnk.alt[disabled]{opacity:.5}
 </style>
 </head>
 <body>
@@ -1740,7 +1746,8 @@ function scAuth(){
     <p class="ssub">أُرسل ${P.channel==='whatsapp'?'عبر واتساب':P.channel==='telegram'?'عبر تيليغرام':'في رسالة'} إلى <b class="num">${esc(P.phone||'')}</b></p>
     ${S.api?.demo||P.channel==='test'?`<p class="note info small">${S.api?.demo?'نسخة تجريبية: الرمز هو <b class="num">123456</b>':'وضع الاختبار: يظهر الرمز للإدارة في «رسائل التحقق»'}</p>`:''}
     <form onsubmit="event.preventDefault();App.verifyOtp(this)" novalidate>
-     <input class="otp" id="otp" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" dir="ltr" placeholder="••••••" oninput="this.value=this.value.replace(/\D/g,'');if(this.value.length===6)this.form.requestSubmit()">
+     <div class="otpbox" dir="ltr" onclick="$('#otp').focus()">${[0,1,2,3,4,5].map(i=>`<span class="oc" data-i="${i}"></span>`).join('')}
+      <input class="otp" id="otp" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" dir="ltr" aria-label="رمز التحقق" oninput="this.value=this.value.replace(/\D/g,'');App.otpPaint(this);if(this.value.length===6)this.form.requestSubmit()" onfocus="App.otpPaint(this)" onblur="App.otpPaint(this)"></div>
      <button class="btn" type="submit" style="margin-top:18px">تأكيد</button></form>
     <div class="alinks"><button class="lnk" id="resend" onclick="App.resendOtp(this)" disabled>إعادة الإرسال</button>
     ${(P.alternatives||[]).map(c=>`<button class="lnk alt" onclick="App.resendOtp(this,'${c}')" disabled>أرسله ${({whatsapp:'على واتساب',sms:'برسالة',telegram:'على تيليغرام'})[c]||c}</button>`).join('')}</div>`;
@@ -1756,6 +1763,7 @@ function scAuth(){
      <button class="btn" type="submit" style="margin-top:18px">حفظ والدخول</button></form>`;
   return `<div class="authwrap">${authHero()}<div class="asheet">${body}</div></div>`;
 }
+App.otpPaint=el=>{const v=el.value,f=document.activeElement===el;$$('.otpbox .oc').forEach((c,i)=>{c.textContent=v[i]||'';c.classList.toggle('on',f&&i===Math.min(v.length,5));c.classList.toggle('fill',!!v[i]);});};
 App.authBack=()=>{clearInterval(S.otpTimer);$$('.toast').forEach(x=>x.remove());
   const st=S.authStep;
   if(st==='newpass'||st==='otp'&&S.pending?.purpose==='reset')S.authStep='password';
